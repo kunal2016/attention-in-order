@@ -6,7 +6,7 @@ Every card answers the same questions: what existed, what problem people hit, th
 
 ## Links
 
-- **Live link:** _add after deploying_
+- **Live link:** https://attention-in-order-2026.netlify.app/
 - **GitHub repository:** https://github.com/kunal2016/attention-in-order
 
 ## Run / deploy
