@@ -1,0 +1,985 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Attention, In Order</title>
+<meta name="description" content="An interactive, chronological explainer of attention mechanisms from 2014 to 2026, with every launch date checked against its primary source.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4F3; --surface:#FFFFFF; --ink:#15212B; --muted:#55626C; --line:#D5DBD9; --soft:#E7EBE9;
+  --heat:#17708F; --warm:#BF5329; --good:#2B7849;
+  --t-core:#34548C; --t-pos:#85529A; --t-kv:#17776A; --t-len:#9C6810; --t-sparse:#BA4829; --t-rec:#4A7829; --t-sys:#5A6672;
+  --serif:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1418; --surface:#151D23; --ink:#E3E9E7; --muted:#97A4AB; --line:#29343C; --soft:#1B252C;
+    --heat:#55B6D5; --warm:#EC895D; --good:#6AC28D;
+    --t-core:#8BA7DF; --t-pos:#C592DA; --t-kv:#5BC6B4; --t-len:#DFAD54; --t-sparse:#EE8465; --t-rec:#97C571; --t-sys:#9CA8B3;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1418; --surface:#151D23; --ink:#E3E9E7; --muted:#97A4AB; --line:#29343C; --soft:#1B252C;
+  --heat:#55B6D5; --warm:#EC895D; --good:#6AC28D;
+  --t-core:#8BA7DF; --t-pos:#C592DA; --t-kv:#5BC6B4; --t-len:#DFAD54; --t-sparse:#EE8465; --t-rec:#97C571; --t-sys:#9CA8B3;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
+a{color:var(--heat)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--heat);outline-offset:2px;border-radius:3px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+code,.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* nav */
+.topnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in oklab,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topnav .wrap{display:flex;gap:18px;align-items:center;min-height:48px;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.topnav .brand{font-family:var(--serif);font-size:22px;margin-right:auto}
+.topnav a.nl{font-size:14px;color:var(--muted);text-decoration:none}
+.topnav a.nl:hover{color:var(--ink)}
+
+/* hero */
+.hero{padding-block:56px 28px;display:grid;gap:18px}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,8vw,92px);line-height:.95;letter-spacing:-.01em}
+.hero h1 em{color:var(--heat)}
+.hero .lede{max-width:64ch;font-size:18px;color:var(--muted)}
+.hero .lede strong{color:var(--ink);font-weight:500}
+
+/* pipeline */
+.pipe{grid-template-columns:minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;display:grid;gap:20px}
+.pipe-head{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:end;justify-content:space-between}
+.pipe-head h2{font-family:var(--serif);font-weight:400;font-size:32px}
+.formula{font-family:var(--mono);font-size:15px;background:var(--soft);padding:8px 12px;border-radius:6px;overflow-x:auto;white-space:nowrap}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;font-size:14px}
+.controls label{display:flex;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:inherit;font-family:var(--mono);font-size:13px;background:transparent;color:var(--ink);border:0;padding:5px 11px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.toggle{font:inherit;font-size:14px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 11px;cursor:pointer}
+.toggle[aria-pressed="true"]{border-color:var(--heat);color:var(--heat);background:color-mix(in oklab,var(--heat) 10%,transparent)}
+.stages{display:flex;gap:8px;align-items:stretch;overflow-x:auto;padding-bottom:6px}
+.stage{flex:0 0 auto;display:grid;gap:8px;align-content:start}
+.stage .st-label{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.stage .st-label b{color:var(--ink);font-weight:500;font-size:13px}
+.arrow{flex:0 0 auto;align-self:center;color:var(--muted);font-family:var(--mono);font-size:18px;padding-top:22px}
+.mat{display:grid;gap:2px;font-family:var(--mono);font-size:10.5px;font-variant-numeric:tabular-nums}
+.mat .c{width:40px;height:30px;display:grid;place-items:center;border-radius:3px;color:var(--ink);background:var(--soft)}
+.mat .c.neg-inf{background:repeating-linear-gradient(135deg,var(--soft) 0 4px,var(--surface) 4px 8px);color:var(--muted)}
+.mat .c.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.mat .rh{width:34px;height:30px;display:grid;place-items:center;font-size:11px;color:var(--muted);cursor:pointer;border-radius:3px;background:transparent;border:0;font-family:var(--mono)}
+.mat .rh[aria-pressed="true"]{color:var(--bg);background:var(--ink)}
+.mat .ch{height:18px;display:grid;place-items:end center;font-size:10px;color:var(--muted)}
+.pipe-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;font-size:14.5px}
+.pipe-notes .n h4{margin:0 0 4px;font-size:13px;font-family:var(--mono);font-weight:500;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.readout{font-family:var(--mono);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 20px;border-top:1px solid var(--line);padding-top:12px}
+.readout span b{font-weight:500}
+.readout .warn{color:var(--warm)}
+
+/* section titles */
+.sec{padding-block:56px 8px}
+.sec-head{display:grid;gap:10px;margin-bottom:22px;max-width:70ch}
+.sec-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5vw,48px);line-height:1.05}
+.sec-head p{color:var(--muted)}
+
+/* swimlane map */
+.map{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 14px 8px}
+.map-scroll{overflow-x:auto}
+.map svg{display:block;min-width:900px;width:100%;height:auto}
+.map svg text{font-family:var(--mono)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.chip{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}
+.chip i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.chip[aria-pressed="true"]{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
+.priorities{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:18px}
+.priorities div{background:var(--surface);padding:12px 14px;font-size:14px}
+.priorities b{display:block;font-family:var(--mono);font-weight:500;font-size:12px;color:var(--muted)}
+
+/* timeline */
+.tl{display:grid;gap:0;position:relative}
+.year{display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:end;padding-top:40px}
+.year h3{font-family:var(--serif);font-weight:400;font-size:56px;line-height:1;color:var(--muted)}
+.year hr{border:0;border-top:1px solid var(--line);margin:0 0 12px}
+.shift{display:grid;grid-template-columns:120px 1fr;gap:24px;padding-block:18px 6px}
+.shift p{font-family:var(--serif);font-style:italic;font-size:22px;line-height:1.3;max-width:52ch;color:var(--ink)}
+.shift .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:8px}
+.entry{display:grid;grid-template-columns:120px 1fr;gap:24px;padding-block:14px}
+.entry .rail{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:22px;font-variant-numeric:tabular-nums;border-top:2px solid var(--c)}
+.entry .rail b{display:block;color:var(--ink);font-weight:500;font-size:15px}
+.card{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;display:grid;gap:18px;transition:opacity .2s}
+.card.dim{opacity:.28}
+.tl.compact .story>div:first-child,.tl.compact .mech,.tl.compact .note,.tl.compact .src{display:none}
+.tl.compact .card{gap:12px}
+.tl-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+.card-head{display:grid;gap:6px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;color:var(--c);background:color-mix(in oklab,var(--c) 12%,transparent)}
+.tag.added{--c:var(--good)}
+.tag.bill{--c:var(--ink);background:transparent;border:1px solid var(--line)}
+.fit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;font-size:14px}
+.fit div{background:var(--soft);border-radius:6px;padding:10px 12px}
+.fit b{display:block;font-family:var(--mono);font-weight:500;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.tag.prologue{--c:var(--muted)}
+.card h3{font-family:var(--serif);font-weight:400;font-size:34px;line-height:1.05}
+.card .src{font-size:13.5px;color:var(--muted)}
+.card .src a{color:var(--muted)}
+.story{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px 26px}
+.story h4,.trade h4{margin:0 0 4px;font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.story p{font-size:15.5px;max-width:62ch}
+.mech{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:22px;align-items:start}
+.mech .txt{display:grid;gap:10px;font-size:15.5px}
+.mech .eq{font-family:var(--mono);font-size:13.5px;background:var(--soft);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre;line-height:1.55}
+.viz{display:grid;gap:8px;justify-items:stretch;min-width:0}
+.svgbox{width:100%}
+.viz .cap{font-size:12.5px;color:var(--muted);max-width:44ch}
+.trade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.trade>div{background:var(--surface);padding:14px 16px}
+.trade ul{margin:0;padding-left:18px;font-size:14.5px;display:grid;gap:6px}
+.trade .buys h4{color:var(--good)}
+.trade .costs h4{color:var(--warm)}
+.trade .when p{font-size:14.5px}
+.next{font-size:14.5px;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.next b{color:var(--ink);font-weight:500}
+.note{font-size:13.5px;color:var(--muted);background:var(--soft);border-radius:6px;padding:10px 12px}
+.note b{color:var(--ink);font-weight:500}
+.resp{font-size:13px;color:var(--muted)}
+.resp a{color:var(--muted)}
+
+/* mini grids */
+.grids{display:flex;flex-wrap:wrap;gap:14px}
+.mgrid{display:grid;gap:1px}
+.mgrid span{width:9px;height:9px;background:var(--soft);border-radius:1px}
+.mgrid span.a{background:var(--heat)}
+.mgrid span.b{background:color-mix(in oklab,var(--heat) 45%,var(--surface))}
+.mgrid span.s{background:var(--warm)}
+.mgrid span.u{background:transparent}
+.mgrid span.n{background:color-mix(in oklab,var(--heat) 16%,var(--surface));outline:1px dashed var(--line);outline-offset:-1px}
+.glabel{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:1px;margin-right:5px;vertical-align:-1px}
+
+/* small widgets */
+.svgbox{max-width:100%;overflow-x:auto}
+.svgbox svg{display:block;max-width:100%;height:auto}
+.svgbox svg text{font-family:var(--mono)}
+.wctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:13px}
+.wctl input[type=range]{width:140px;accent-color:var(--heat)}
+.calc{display:grid;gap:12px;width:100%}
+.calc .ins{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 12px}
+.calc label{display:grid;gap:2px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+.calc input,.calc select{font:inherit;font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:4px 6px;width:100%}
+.bars{display:grid;gap:6px;width:100%}
+.bar{display:grid;grid-template-columns:48px 1fr 92px;gap:10px;align-items:center;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.bar .t{height:14px;background:var(--soft);border-radius:3px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--t-kv)}
+.bar .v{text-align:right}
+.mem{display:grid;gap:8px;width:100%;font-family:var(--mono);font-size:12.5px}
+.mem .row{display:grid;grid-template-columns:120px repeat(2,1fr);gap:10px;align-items:center}
+.vec{display:flex;gap:3px;align-items:end;height:34px}
+.vec i{width:14px;background:var(--heat);border-radius:2px 2px 0 0;min-height:1px}
+.vec i.neg{background:var(--warm)}
+.vec small{font-size:11px;color:var(--muted);margin-left:6px;align-self:center}
+
+/* choose table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td b{font-weight:600}
+
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.findings>div{background:var(--surface);padding:18px;display:grid;gap:8px;align-content:start}
+.findings h3{font-family:var(--serif);font-weight:400;font-size:23px;line-height:1.15}
+.findings p{font-size:15px;color:var(--ink)}
+.corr{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.corr div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;font-size:14.5px;display:grid;gap:6px}
+.corr h4{margin:0;font-size:15px;font-weight:600}
+.srcs{columns:2 340px;column-gap:32px;font-size:14px;padding-left:18px}
+.srcs li{break-inside:avoid;margin-bottom:8px}
+.srcs .d{font-family:var(--mono);font-size:12px;color:var(--muted)}
+footer{padding-block:48px;color:var(--muted);font-size:13.5px}
+
+@media (max-width:980px){.priorities{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .year,.shift,.entry{grid-template-columns:minmax(0,1fr);gap:6px}
+  .year h3{font-size:44px}
+  .entry .rail{padding-top:10px;border-top-width:2px}
+  .entry .rail b{display:inline;margin-right:8px}
+  .mech{grid-template-columns:minmax(0,1fr)}
+  .trade{grid-template-columns:minmax(0,1fr)}
+  .fit{grid-template-columns:minmax(0,1fr)}
+  .priorities{grid-template-columns:minmax(0,1fr)}
+  .story{grid-template-columns:minmax(0,1fr)}
+  .card{padding:16px}
+  .card h3{font-size:28px}
+  .pipe{padding:14px}
+  .shift p{font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+[id]{scroll-margin-top:64px}
+</style>
+</head><body>
+
+<nav class="topnav" aria-label="Sections">
+  <div class="wrap">
+    <span class="brand">Attention, in order</span>
+    <a class="nl" href="#pipeline">The pipeline</a>
+    <a class="nl" href="#map">Map</a>
+    <a class="nl" href="#timeline">Timeline</a>
+    <a class="nl" href="#shows">What it shows</a>
+    <a class="nl" href="#choose">Choosing</a>
+    <a class="nl" href="#dates">Dates to watch</a>
+    <a class="nl" href="#sources">Sources</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="hero">
+    <span class="eyebrow">How attention works now · 2014 → 2026</span>
+    <h1>Attention, <em>in order</em></h1>
+    <p class="lede">Every attention mechanism since 2014 is a response to a cost created by the one before it. This page starts with the one mechanism everything else modifies, then walks the field <strong>in the order ideas actually appeared</strong>, dated from the original paper or release. For each one: what existed, what hurt, what changed, <strong>what it buys, what it gives up, and when you would pick it</strong>.</p>
+  </header>
+
+  <section id="pipeline" class="pipe" aria-labelledby="pipe-title">
+    <div class="pipe-head">
+      <div style="display:grid;gap:6px">
+        <span class="eyebrow">Start here · 12 Jun 2017</span>
+        <h2 id="pipe-title">Scaled dot-product attention, one step at a time</h2>
+      </div>
+      <div class="formula">Attention(Q,K,V) = softmax( QKᵀ / √d<sub>k</sub> + M ) · V</div>
+    </div>
+    <p style="max-width:70ch;font-size:15.5px">Five tokens. Each token has a query vector (what it is looking for), a key vector (what it offers to be found by) and a value vector (what it hands over if chosen). Q and K below are random with d<sub>k</sub> dimensions, so you can see how the <em>size</em> of the dot products behaves. Click a row label to follow one token through every step.</p>
+    <div class="controls">
+      <span>d<sub>k</sub> <span class="seg" id="dk-seg" role="group" aria-label="Key dimension"></span></span>
+      <button class="toggle" id="t-mask" aria-pressed="true" type="button">Causal mask on</button>
+      <button class="toggle" id="t-scale" aria-pressed="true" type="button">÷√d<sub>k</sub> on</button>
+      <button class="toggle" id="t-seed" type="button">New random Q, K, V</button>
+    </div>
+    <div class="stages" id="stages"></div>
+    <div class="readout" id="readout"></div>
+    <div class="pipe-notes">
+      <div class="n"><h4>1 · Q × Kᵀ → scores</h4><p>Every query is compared with every key: an n × n table. This is the source of attention's power (any token can reach any other in one step) and of its main cost (n² work and memory).</p></div>
+      <div class="n"><h4>2 · Scale by √d<sub>k</sub></h4><p>For random vectors, a dot product has variance d<sub>k</sub>. Without scaling, larger heads give larger scores, softmax saturates to one-hot, and gradients vanish. Switch the scaling off at d<sub>k</sub> = 256 to see it.</p></div>
+      <div class="n"><h4>3 · Mask</h4><p>A language model must not see the future, so scores for j &gt; i become −∞. Almost every later mechanism in this timeline is, at heart, a different mask or a cheaper way to fill this table.</p></div>
+      <div class="n"><h4>4 · Softmax, then × V</h4><p>Each row becomes weights that sum to 1, and the output is that weighted average of value vectors. During generation, K and V of all past tokens are kept in the <b>KV cache</b>, which grows with every token.</p></div>
+    </div>
+  </section>
+
+  <section id="map" class="sec" aria-labelledby="map-title">
+    <div class="sec-head">
+      <span class="eyebrow">The field, by date</span>
+      <h2 id="map-title">Watch the priorities move</h2>
+      <p>Each dot is a mechanism, placed at its first public appearance and sorted into the problem it attacked. Click a dot to jump to its card. Pick a thread to highlight it in the timeline; the order never changes.</p>
+    </div>
+    <div class="map">
+      <div class="map-scroll"><svg id="lanes" viewBox="0 0 1000 300" role="img" aria-label="Swimlane chart of attention mechanisms by year and problem area"></svg></div>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Highlight a thread"></div>
+    <div class="priorities">
+      <div><b>2014–2017</b>Exact global attention becomes the whole model.</div>
+      <div><b>2019–2020</b>Pay less compute: fixed sparse patterns, windows, linear kernels.</div>
+      <div><b>2019–2023</b>Pay less memory: fewer K/V heads.</div>
+      <div><b>2021–2023</b>Get length: better positions, then stretching existing weights.</div>
+      <div><b>2024–2025</b>Memory again: compressed entries; recurrent state returns.</div>
+      <div><b>2025–2026</b>Trainable sparsity returns; compression gets aggressive.</div>
+    </div>
+  </section>
+
+  <section id="timeline" class="sec" aria-labelledby="tl-title">
+    <div class="sec-head">
+      <span class="eyebrow">Chronological, by first public appearance</span>
+      <h2 id="tl-title">The timeline</h2>
+      <p>Dates are the arXiv v1 submission date unless the card says otherwise. Cards tagged <span class="tag added" style="font-size:10px">added</span> are mechanisms outside the usual short list, included because the story has a gap without them. Each card ends with the problem it left open and the later card that picked it up.</p>
+      <div class="tl-tools"><button class="toggle" id="t-compact" type="button" aria-pressed="false">Short version: problem and trade-offs only</button></div>
+    </div>
+    <div class="tl" id="tl"></div>
+  </section>
+
+  <section id="shows" class="sec" aria-labelledby="shows-title">
+    <div class="sec-head">
+      <span class="eyebrow">Read the timeline, not the list</span>
+      <h2 id="shows-title">What the order reveals</h2>
+      <p>Vanilla attention was not wrong; it was expensive. It sends two bills, compute that grows as n² and a KV cache that grows with every token, and it needs position supplied from outside. Every later card is somebody trying to pay less of one of them. Put in date order, the cards show which bill the field was paying at each moment.</p>
+    </div>
+    <div class="findings">
+      <div><h3>Compute was attacked first, and mostly abandoned</h3><p>The first wave (2019–20: fixed sparse patterns, top-k, sliding windows, linear attention) went after the n² compute bill. After FlashAttention (May 2022) made exact attention fast on GPUs, frontier models largely dropped approximate attention for training. Only windows survived, as one layer type among several.</p></div>
+      <div><h3>Memory was named in 2019 but paid for in 2023–24</h3><p>MQA identified the decode-time KV bill in November 2019. The field acted on it only once serving at scale made it the binding cost: GQA (May 2023), then MLA (May 2024). The fixes move from sharing heads, to shrinking each entry, to storing fewer entries (CSA, 2026).</p></div>
+      <div><h3>Length came in two waves, and one was driven by a Reddit post</h3><p>First, how to represent position (relative positions 2018, RoPE and ALiBi 2021). Then, once open LLaMA weights shipped with a 2K window, how to stretch existing models: PI, NTK-aware and YaRN appeared within about ten weeks in mid-2023. NTK-aware came from the community, not a lab. DroPE (Dec 2025) questions whether explicit position is needed at long range at all.</p></div>
+      <div><h3>Old ideas return once their missing piece exists</h3><p>Top-k (2019) came back as DSA (2025) once a cheap indexer could choose the k. Linear attention (2020) came back as Gated DeltaNet (2024) once the delta rule and gating fixed its memory, and it returned as most layers of a hybrid rather than as a replacement. Fixed sparse blocks (2019) came back as trained, GPU-shaped blocks in NSA and CSA.</p></div>
+      <div><h3>Exactness is never fully given up</h3><p>Every long-context design keeps some exact path: a window of recent tokens, a few full-attention layers, or a selected set of real tokens. The arguments are about how much exactness to keep, and where.</p></div>
+      <div><h3>What the pattern suggests comes next</h3><p>A reading of the trend, not a forecast. At a million tokens the far past is either stored (linear growth) or pooled (lossy). Expect effort on deciding what to keep: learned, content-dependent compression and eviction, better selectors, and memory that crosses chunk boundaries. Expect position to become less explicit at long range, and the ratio of exact to cheap layers to be tuned per workload rather than fixed.</p></div>
+    </div>
+  </section>
+
+  <section id="choose" class="sec" aria-labelledby="choose-title">
+    <div class="sec-head">
+      <span class="eyebrow">The architecture has a workload</span>
+      <h2 id="choose-title">What would you actually pick?</h2>
+      <p>No mechanism here is good or bad in isolation. The same choice can be right for a 2K-token chatbot and wrong for a million-token agent.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:24%">Workload</th><th style="width:30%">Reasonable choice</th><th>Why, and what you accept</th></tr></thead>
+        <tbody>
+          <tr><td><b>2K–8K chatbot</b>, small model, one GPU</td><td>Dense causal attention, RoPE, GQA (or MQA), FlashAttention kernels</td><td>At this length the n² term is cheap and the KV cache is small. Exact attention gives the best quality per parameter; anything fancier adds complexity for little saving.</td></tr>
+          <tr><td><b>128K assistant</b> serving many users</td><td>GQA or MLA, RoPE extended with YaRN, some sliding-window layers</td><td>The KV cache sets how many users fit on a GPU. MLA shrinks it most but needs custom kernels; GQA is the well-supported middle. Window layers cut cost but can't retrieve far facts on their own, so keep global layers.</td></tr>
+          <tr><td><b>1M-token coding agent</b></td><td>Compressed + sparse attention (CSA/HCA-style) or a hybrid of Gated DeltaNet layers with a few full-attention layers</td><td>Dense attention over 1M tokens is too costly per step. You accept lossy or selective access to the far past: the model reads compressed blocks or a learned top-k, and can miss a detail the selector didn't pick.</td></tr>
+          <tr><td><b>Endless stream</b> (voice, live chat) with fixed memory</td><td>Sliding window + attention sinks, or a linear/recurrent layer</td><td>Memory stays constant forever. Anything that falls out of the window is gone, so this suits "recent context matters most", not "recall what was said an hour ago".</td></tr>
+          <tr><td><b>Extend an existing 4K RoPE model</b> to 32K–128K cheaply</td><td>YaRN with a short fine-tune; DroPE if you can do a short recalibration and want zero-shot extension</td><td>No retraining from scratch. YaRN is proven in production; DroPE is newer and less tested at frontier scale.</td></tr>
+          <tr><td><b>New long-context model</b> trained from scratch</td><td>Natively trainable sparse attention (NSA/DSA family) or a linear-attention hybrid, plus gated attention output</td><td>You control pretraining, so the model can learn to use sparse selection or recurrent state. The cost is engineering: custom kernels, indexers, and more hyperparameters.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="dates" class="sec" aria-labelledby="dates-title">
+    <div class="sec-head">
+      <span class="eyebrow">Where confident sentences go wrong</span>
+      <h2 id="dates-title">Dates to watch</h2>
+      <p>Each item below is a place where a quick summary or a reading list would put something in the wrong order.</p>
+    </div>
+    <div class="corr">
+      <div><h4>Learned positions came before sinusoidal</h4><p>Learned absolute position embeddings were in ConvS2S (8 May 2017). The Transformer paper (12 Jun 2017) introduced sinusoids and cites ConvS2S for the learned version, reporting nearly identical results for both.</p></div>
+      <div><h4>"DeepSeek sparse attention" is three different things</h4><p>NSA is a paper (16 Feb 2025). DSA shipped with DeepSeek-V3.2-Exp (29 Sep 2025). CSA and HCA arrived with DeepSeek-V4 (24 Apr 2026). Some third-party write-ups say V3.2 introduced CSA; the V4 report describes CSA as compression followed by DSA.</p></div>
+      <div><h4>DroPE is not the newest item</h4><p>DroPE (13 Dec 2025) predates CSA/HCA (24 Apr 2026) by four months, so it sits before DeepSeek-V4 in the timeline.</p></div>
+      <div><h4>The delta rule is 2021, not 2024</h4><p>Schlag, Irie &amp; Schmidhuber added delta-rule writes to linear attention on 22 Feb 2021. The 2024 DeltaNet paper (10 Jun 2024) made it trainable in parallel; Gated DeltaNet followed on 9 Dec 2024.</p></div>
+      <div><h4>NTK-aware scaling has no paper</h4><p>It was a Reddit post by bloc97 on r/LocalLLaMA in late June 2023. Reddit requires sign-in, so the 29 Jun date here comes from archived copies and later citations, not the page itself.</p></div>
+      <div><h4>Two "first" dates for DeepSeek-V4</h4><p>The model and weights were released 24 Apr 2026 (DeepSeek API news). The arXiv version of the report is dated 26 Apr 2026, even though its ID starts with 2606. This page uses the release date.</p></div>
+    </div>
+  </section>
+
+  <section id="sources" class="sec" aria-labelledby="src-title">
+    <div class="sec-head">
+      <span class="eyebrow">Primary sources for every date</span>
+      <h2 id="src-title">Sources</h2>
+    </div>
+    <ol class="srcs" id="srclist"></ol>
+  </section>
+
+  <footer>Numbers quoted from papers are the authors' own claims. Examples in the interactive widgets use random or illustrative values, labelled where they appear.</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s);
+
+/* ---------- threads ---------- */
+const THREADS={
+  core:{name:"Core attention",c:"var(--t-core)"},
+  pos:{name:"Position",c:"var(--t-pos)"},
+  kv:{name:"Decoding memory (KV)",c:"var(--t-kv)"},
+  len:{name:"Longer context",c:"var(--t-len)"},
+  sparse:{name:"Sparsity & compression",c:"var(--t-sparse)"},
+  rec:{name:"Recurrent state",c:"var(--t-rec)"},
+  sys:{name:"Architecture & systems",c:"var(--t-sys)"}
+};
+
+/* ---------- entries (chronological) ---------- */
+const E=[
+{type:"shift",date:"2014-08-31",text:"Before transformers: neural translation squeezes a whole sentence into one fixed vector, and long sentences fall apart."},
+{id:"bahdanau",ans:"sdpa",date:"2014-09-01",short:"Additive",title:"Additive attention over RNN states",thread:"core",prologue:true,
+ src:{label:"Bahdanau, Cho & Bengio, arXiv 1409.0473 (v1)",url:"https://arxiv.org/abs/1409.0473"},
+ existed:"Encoder–decoder RNNs. The encoder compresses the source sentence into a single fixed-length vector; the decoder generates from that vector alone.",
+ problem:"One vector is a bottleneck. Translation quality drops as sentences get longer, because everything has to fit in the same number of dimensions.",
+ mech:"At each output step, score every encoder state against the decoder state with a small network, softmax the scores, and read a weighted sum. The decoder can now look back at any source word.",
+ eq:"e_ij = vᵀ tanh(W s_{i-1} + U h_j)\nα_ij = softmax_j(e_ij)\nc_i  = Σ_j α_ij h_j",
+ buys:["No fixed-size bottleneck: the context vector is rebuilt for every output word","Soft alignments you can inspect"],
+ costs:["Still an RNN: training runs token by token, so it does not parallelize over the sequence","Attention is an add-on; the recurrent path still carries order and most computation"],
+ when:"Historical context. You would use it today only inside a small RNN model.",
+ next:"Make attention do all the work and remove the recurrence.",viz:"none"},
+{type:"shift",date:"2017-05-01",text:"2017: attention stops being an add-on. Once recurrence is removed, nothing in the model knows word order, so position has to be injected."},
+{id:"learned-pos",bill:"Position",fit:["Fine: a 2K model never needs row 2,049.","No: the table ends at L_max and cannot run longer at all."],ans:"sinusoidal",date:"2017-05-08",short:"Learned pos",title:"Learned absolute position embeddings",thread:"pos",
+ src:{label:"Gehring et al., Convolutional Sequence to Sequence Learning, arXiv 1705.03122 (v1)",url:"https://arxiv.org/abs/1705.03122"},
+ existed:"Models without recurrence (convolutional seq2seq, and a month later the Transformer) process all positions in parallel.",
+ problem:"Attention treats its input as a set: shuffle the tokens and every token gets the same output, just shuffled. The model needs another way to know order.",
+ mech:"Keep a trainable table with one vector per position, up to a maximum length. Add row i to the embedding of the token at position i.",
+ eq:"x_i = token_embedding(w_i) + P[i]      P ∈ ℝ^{L_max × d}",
+ buys:["Simple, and the model learns whatever positional pattern helps","Worked well for fixed-length encoders (BERT, GPT-2 and ViT all use it)"],
+ costs:["No row exists beyond L_max: the model cannot run on longer inputs at all","Positions near L_max are seen rarely and train poorly","Encodes absolute position; relative distance has to be inferred"],
+ when:"Fixed-size inputs: a 512-token classifier, image patches on a fixed grid. Not for a model whose context you may want to extend.",
+ next:"A position code defined for every length, with no parameters.",viz:"learned",
+ note:"End-to-end memory networks (2015) already used learned temporal encodings, so 'first' is fuzzy. The Transformer paper cites ConvS2S for learned position embeddings, which is why it anchors this card."},
+{id:"sdpa",bill:"Creates the bills",fit:["The right default: n² at 2K is cheap and exact attention gives the best quality.","Not on its own: 10¹² scores per head per layer, and a KV cache in the hundreds of GB per user."],ans:"sparse-transformer",date:"2017-06-12",short:"Scaled dot-product",title:"Scaled dot-product, multi-head self-attention",thread:"core",
+ src:{label:"Vaswani et al., Attention Is All You Need, arXiv 1706.03762 (v1)",url:"https://arxiv.org/abs/1706.03762"},
+ existed:"RNNs with attention on top (Bahdanau) and convolutional seq2seq.",
+ problem:"Recurrence forces sequential computation: a 1,000-token sequence takes 1,000 dependent steps to train, and distant tokens interact only through many hops.",
+ mech:"Use attention as the entire mixing layer. Queries, keys and values are linear projections of the same tokens; dot products replace the additive scorer; dividing by √d_k keeps softmax out of saturation. Run h heads in parallel on smaller subspaces and concatenate. The pipeline at the top of this page is this card.",
+ eq:"head_h = softmax(Q_h K_hᵀ / √d_k + M) V_h\nMHA(X) = concat(head_1 … head_H) W_O",
+ buys:["Any token reaches any other in one step (path length 1)","Training is fully parallel over the sequence","Exact: nothing is approximated or dropped"],
+ costs:["Compute and memory for the score table grow as n². At n = 128K one fp16 score matrix is 32 GiB per head","Generation keeps K and V for every past token, per head, per layer: the KV cache grows linearly and is re-read at every step","No built-in sense of order"],
+ when:"Always, as the reference point. Plain dense attention is still the best choice when contexts are a few thousand tokens.",
+ next:"Every later card attacks one of these three costs: n² compute, KV-cache memory, or position.",viz:"sdpa"},
+{id:"sinusoidal",bill:"Position",fit:["Works, but RoPE is the standard choice now.","No: it does not extrapolate past the training length."],ans:"relpos",date:"2017-06-12",short:"Sinusoidal",title:"Sinusoidal position encoding",thread:"pos",
+ src:{label:"Vaswani et al., arXiv 1706.03762, §3.5",url:"https://arxiv.org/abs/1706.03762"},
+ existed:"Learned absolute embeddings, which stop at L_max.",
+ problem:"The authors wanted a position code defined for any length, which might let the model generalize to sequences longer than those seen in training.",
+ mech:"Each dimension pair is a sine and cosine at a different frequency, from fast (changes every token) to very slow. Added to the token embedding, like learned embeddings.",
+ eq:"PE(pos, 2i)   = sin(pos / 10000^{2i/d})\nPE(pos, 2i+1) = cos(pos / 10000^{2i/d})",
+ buys:["Zero parameters, defined for every position","PE(pos+k) is a fixed linear function of PE(pos), so relative offsets are learnable in principle"],
+ costs:["Added to the content vector, so position and meaning are mixed in the same dimensions","In practice it does not extrapolate: the ALiBi paper shows perplexity blowing up past the training length"],
+ when:"Small models trained from scratch at a fixed length, or non-language data. Rarely used in new LLMs.",
+ next:"Put relative position directly into the query–key dot product.",viz:"sinus"},
+{id:"relpos",bill:"Position",fit:["Fine, as in T5.","Poor fit: bucketed distances blur far tokens and the bias needs kernel support at every length."],date:"2018-03-06",short:"Rel. pos",title:"Relative position representations",thread:"pos",ans:"rope",
+ src:{label:"Shaw, Uszkoreit & Vaswani, Self-Attention with Relative Position Representations, arXiv 1803.02155 (v1)",url:"https://arxiv.org/abs/1803.02155"},
+ existed:"Learned and sinusoidal absolute positions, added to the token embeddings before the first layer.",
+ problem:"What usually matters is how far apart two tokens are, not their absolute index. With absolute codes the model has to work out distance indirectly, and the position signal is mixed into the content vector.",
+ mech:"Learn one vector per relative distance, clipped to a maximum k, and add it to the key (and value) inside attention. The score between tokens i and j now depends on their distance directly. T5 (arXiv 1910.10683, Oct 2019) simplified this to one learned scalar per head per distance bucket, added to the score.",
+ eq:"Shaw:  e_ij = q_i · (k_j + a^K_clip(j−i, k)) / √d\nT5:    score_ij = q_i · k_j + b_h(bucket(i − j))",
+ buys:["Attention sees distance directly, independent of absolute position","Shaw et al. report BLEU gains over absolute positions on WMT 2014 translation","A fixed number of parameters for any length, thanks to clipping or bucketing"],
+ costs:["An extra term for every query–key pair, which attention kernels must support","Clipped or bucketed distances blur tokens that are far apart","The bias is not a product of a query part and a key part, so it does not fit the linear-attention trick","In the ALiBi paper's tests, T5's bias extrapolated better than sinusoidal or rotary but trained noticeably slower"],
+ when:"Encoder and T5-family models. In decoder LLMs it was largely replaced by RoPE.",
+ next:"Get relative position into q·k without an extra bias term.",viz:"relbias",
+ note:"Added because RoPE and ALiBi are both responses to it, and without it the position thread jumps from 2017 to 2021."},
+{type:"shift",date:"2019-04-01",text:"Attention is now the whole model, and its n² cost is the first wall. People want images as pixels, audio as samples and documents of thousands of tokens."},
+{id:"sparse-transformer",bill:"Compute",fit:["Unnecessary: dense attention is cheap at 2K.","Only as an ingredient: a hand-drawn pattern cannot know which far token matters."],ans:"topk",date:"2019-04-23",short:"Sparse Transformer",title:"Fixed sparse patterns (Sparse Transformer)",thread:"sparse",
+ src:{label:"Child, Gray, Radford & Sutskever, arXiv 1904.10509",url:"https://arxiv.org/abs/1904.10509"},
+ existed:"Dense attention, O(n²).",
+ problem:"Modeling images and audio as raw sequences means tens of thousands of positions. A dense n × n table does not fit.",
+ mech:"Factor the mask: one head attends to the previous l positions, another to every l-th position. Two layers together connect any pair of tokens, at O(n√n) cost with l ≈ √n.",
+ eq:"strided: attend j if (i − j) < l   or   (i − j) mod l = 0",
+ buys:["Sequences of tens of thousands of steps","Every token still reaches every other within two hops"],
+ costs:["The pattern is chosen by hand, not by content: a relevant token off the pattern costs extra hops","Needs custom kernels to be fast","Works best when the data has matching structure (rows and columns of an image)"],
+ when:"Data with regular 2D or periodic structure. GPT-3 alternated dense and locally banded sparse layers in this spirit.",
+ next:"Let the content decide which tokens to attend to.",viz:"strided"},
+{type:"shift",date:"2019-11-01",text:"A second wall appears on the inference side. Training is parallel, but generation is one token at a time, and every step re-reads the whole KV cache from memory."},
+{id:"mqa",bill:"KV memory",fit:["Good when latency matters and a little quality can be spared.","Helps (cache ÷ heads) but the cache still grows with every token."],ans:"gqa",date:"2019-11-06",short:"MQA",title:"Multi-query attention",thread:"kv",
+ src:{label:"Shazeer, Fast Transformer Decoding: One Write-Head is All You Need, arXiv 1911.02150",url:"https://arxiv.org/abs/1911.02150"},
+ existed:"Multi-head attention: every head has its own K and V, and all of them are cached.",
+ problem:"Incremental decoding is limited by memory bandwidth, not arithmetic. Each new token has to load H key and value tensors for the entire past.",
+ mech:"Keep many query heads but share a single key head and a single value head across all of them. The KV cache shrinks by a factor of H.",
+ eq:"head_h = softmax(Q_h Kᵀ / √d_k) V      (one K, one V for all h)",
+ buys:["KV cache and decode bandwidth divided by the number of heads","Much faster decoding and larger batches on the same GPU"],
+ costs:["Some quality loss: every head must read the same keys and values","Reported training instability in later work","Under tensor parallelism the single KV head is replicated on every device, so part of the saving disappears"],
+ when:"Latency-critical serving of small and mid-size models. PaLM and Falcon-7B used it; the larger Falcon models moved to grouped KV heads.",
+ next:"Recover quality without giving back all the memory.",viz:"heads-mqa"},
+{type:"shift",date:"2019-12-01",text:"Meanwhile the n² wall is attacked from three sides within a year: choose keys by content (top-k), stay local (windows), or remove the softmax that forces all-pairs work (linear attention)."},
+{id:"topk",bill:"Attention focus",fit:["Optional, as a regularizer.","No on its own: it still computes every score before choosing."],ans:"dsa",date:"2019-12-25",short:"Top-k",title:"Top-k sparse attention (Explicit Sparse Transformer)",thread:"sparse",
+ src:{label:"Zhao et al., Explicit Sparse Transformer, arXiv 1912.11637",url:"https://arxiv.org/abs/1912.11637"},
+ existed:"Dense softmax, which gives every token some weight, and fixed sparse patterns that ignore content.",
+ problem:"Softmax spreads probability over many irrelevant tokens, which the authors argue dilutes attention. Fixed patterns cannot know which tokens matter.",
+ mech:"Compute all scores, keep the k largest per row, set the rest to −∞, then softmax. The sparsity pattern now depends on content.",
+ eq:"P = QKᵀ/√d\nP'_ij = P_ij if P_ij ≥ t_i (k-th largest in row i), else −∞\nout = softmax(P') V",
+ buys:["Content-chosen, sharply focused attention","Reported gains on translation and captioning, and faster than sparsemax-style alternatives"],
+ costs:["All n² scores are still computed to find the top k, so there is no compute saving on its own","k is a hard hyperparameter; gradients do not flow to tokens that were not selected"],
+ when:"As a regularizer in small models. The idea pays off later, when a cheap separate scorer chooses the top k (DSA, 2025).",
+ next:"A cheap way to find the top-k without computing every score.",viz:"topk"},
+{id:"sliding",bill:"Compute and KV memory",fit:["Pointless if the window already covers the context.","Useful for local layers, but must be paired with layers that can reach far back."],ans:"sinks",date:"2020-04-10",short:"Sliding window",title:"Sliding-window attention (Longformer)",thread:"sparse",
+ src:{label:"Beltagy, Peters & Cohan, Longformer, arXiv 2004.05150 (v1)",url:"https://arxiv.org/abs/2004.05150"},
+ existed:"Dense attention capped at 512 tokens in BERT-style models; strided patterns designed for images.",
+ problem:"Documents run to thousands of tokens, and most useful context in text is local.",
+ mech:"Each token attends to a fixed window of w neighbours (in a causal model, the previous w). Stacking L layers gives a receptive field of about L × w. Longformer adds dilated windows and a few task-chosen global tokens.",
+ eq:"attend j if 0 ≤ i − j < w          cost O(n·w)",
+ buys:["Compute linear in length","In a causal model the KV cache can be a rolling buffer of size w: memory stops growing"],
+ costs:["No direct access to anything outside the window; far information must hop through layers and fades","Exact retrieval of a distant fact is weak","Global tokens need task-specific design"],
+ when:"Interleaved with global layers in modern LLMs (Mistral 7B used a 4,096-token window; Gemma 2 alternates local and global layers).",
+ next:"What happens when the window slides past the first tokens?",viz:"sliding",
+ note:"Earlier origin: local attention windows appear in the Image Transformer (arXiv 1802.05751, Feb 2018) and in the Sparse Transformer's local band (2019). Longformer anchors this card because it made windowed attention the main mechanism for long text."},
+{id:"linear",bill:"Compute and KV memory",fit:["Worse quality than softmax for no real saving.","Constant memory is attractive, but recall is too weak on its own."],ans:"delta",date:"2020-06-29",short:"Linear attn",title:"Linear attention",thread:"rec",
+ src:{label:"Katharopoulos et al., Transformers are RNNs, arXiv 2006.16236 (v1)",url:"https://arxiv.org/abs/2006.16236"},
+ existed:"Softmax attention at O(n²), and sparse patterns that approximate it.",
+ problem:"Quadratic cost is fundamental to softmax: exp(q·k) cannot be split into a part for q and a part for k.",
+ mech:"Replace the exponential with a kernel φ(q)·φ(k). Matrix multiplication is associative, so sum φ(k)vᵀ over keys first. In a causal model this running sum is a fixed-size state matrix, updated once per token: the Transformer becomes an RNN.",
+ eq:"S_t = S_{t-1} + v_t φ(k_t)ᵀ        (d_v × d_k state)\nz_t = z_{t-1} + φ(k_t)\no_t = S_t φ(q_t) / (z_tᵀ φ(q_t))      φ(x) = elu(x) + 1",
+ buys:["O(n) training, constant memory and time per generated token","The authors report up to 4000× faster autoregressive generation on very long sequences"],
+ costs:["The entire past lives in one d × d matrix: finite memory","Writes only add; nothing is ever erased, so keys interfere as the sequence grows","Much weaker recall and in-context retrieval than softmax attention"],
+ when:"Very long streams where approximate memory is acceptable. Today mostly as layers inside hybrid models.",
+ note:"Earlier origin: Shen et al., Efficient Attention (arXiv 1812.01243, Dec 2018), already reordered the attention product for linear cost. This card is anchored on Katharopoulos et al. because they made the causal, RNN-style state explicit.",
+ next:"A way to overwrite memory instead of piling on top of it.",viz:"memdemo-linear"},
+{id:"delta",bill:"Memory quality",fit:["No need.","Better recall than plain linear attention, still a finite state."],ans:"gdn",date:"2021-02-22",short:"Delta rule",title:"The delta rule for linear attention",thread:"rec",
+ src:{label:"Schlag, Irie & Schmidhuber, Linear Transformers Are Secretly Fast Weight Programmers, arXiv 2102.11174 (v1)",url:"https://arxiv.org/abs/2102.11174"},
+ existed:"Linear attention with purely additive writes.",
+ problem:"Viewed as an associative memory, linear attention has limited capacity. Writing a new value for a key that is already stored returns the sum of old and new, not the new value.",
+ mech:"Before writing, read what the memory currently returns for this key. Write only the difference between the desired value and that prediction, scaled by a learned rate β. This is one step of gradient descent on ‖S k − v‖².",
+ eq:"v̂_t = S_{t-1} k_t\nS_t = S_{t-1} + β_t (v_t − v̂_t) k_tᵀ\n    = S_{t-1}(I − β_t k_t k_tᵀ) + β_t v_t k_tᵀ",
+ buys:["Can correct or overwrite a stored association","Better associative recall than additive linear attention"],
+ costs:["The update is no longer a plain sum, so the 2021 version trained sequentially and slowly (Yang et al. made it parallel on 10 Jun 2024)","Still a fixed-size state","No fast way to clear memory in bulk when context changes"],
+ when:"Recall-heavy linear-time layers. In 2021 it was a research idea; it became practical in 2024.",
+ next:"Add forgetting, and make it train at scale.",viz:"memdemo-delta"},
+{id:"hybrid",bill:"KV memory",fit:["Overkill: an all-attention stack is simpler.","A strong fit: most layers constant-memory, a few exact."],date:"2021-02-24",short:"Hybrid",title:"Hybrid layer schedules",thread:"sys",added:true,ans:"gdn",
+ src:{label:"Lei, When Attention Meets Fast Recurrence (SRU++), arXiv 2102.12459 (v1)",url:"https://arxiv.org/abs/2102.12459"},
+ existed:"Two kinds of sequence layers. Attention is exact but costs n² and a growing KV cache. Recurrent, state-space and linear-attention layers run in linear time with a fixed-size state, but trail attention on language modeling.",
+ problem:"Attention everywhere is expensive, and recurrence everywhere is not good enough. The open question was how little attention a fast recurrent model actually needs.",
+ mech:"Stop choosing one layer type for the whole network. Build most of the stack from cheap fixed-state layers and keep a few attention layers for exact lookup. SRU++ reported near state-of-the-art language modeling while needing only minimal attention. H3 (Dec 2022) traced the remaining gap to recalling earlier tokens and comparing tokens across the sequence; its 125M hybrid with just two attention layers beat a Transformer on OpenWebText by 1.0 perplexity. The pattern of layer types down the depth is the schedule, and it is a design choice like any other.",
+ eq:"example schedule:  R R R A R R R A     (R = recurrent/linear, A = attention)\nKV cache ≈ (A layers ÷ all layers) × all-attention cache",
+ buys:["Most layers have constant memory per generated token","KV cache shrinks in proportion to the share of attention layers","Attention layers restore the exact retrieval a fixed state loses"],
+ costs:["The cache still grows linearly with context, just with a smaller slope","The ratio and placement are hyperparameters that are rarely ablated cleanly","Two kinds of layers, kernels and cache to build and serve","A retrieval the schedule's few attention layers miss cannot be recovered by the recurrent layers"],
+ when:"Long-context models that must cut memory but still need exact recall somewhere. Jamba (28 Mar 2024) scaled the idea with Mamba and Transformer blocks to 256K context; Qwen3-Next pairs Gated DeltaNet with gated attention.",
+ next:"Better recurrent layers for the R slots, and cheaper attention for the A slots.",viz:"schedule",
+ note:"Added because it explains why recurrent layers returned: not as a replacement for attention but as most of the stack around a few attention layers. SRU++ is the earliest dated example I could verify (arXiv v1, 24 Feb 2021). Gated State Spaces (arXiv 2206.13947, Jun 2022) and H3 (arXiv 2212.14052, Dec 2022) followed; Jamba's date is from its arXiv abstract page (2403.19887)."},
+{type:"shift",date:"2021-04-01",text:"Position is revisited. Added embeddings mix with content and do not carry over to longer inputs. The goal becomes relative position, built into the score itself."},
+{id:"rope",bill:"Position",fit:["The default.","Needs extension (YaRN, DroPE) or native long training."],ans:"pi",date:"2021-04-20",short:"RoPE",title:"Rotary position embedding (RoPE)",thread:"pos",
+ src:{label:"Su et al., RoFormer, arXiv 2104.09864 (v1)",url:"https://arxiv.org/abs/2104.09864"},
+ existed:"Absolute embeddings added to the input, and relative-position biases (Shaw et al., T5) added to the scores.",
+ problem:"Added embeddings mix position into content. Bias tables are awkward with KV caching and linear attention. The model should see relative distance directly in q·k.",
+ mech:"Split q and k into 2-D pairs. Rotate pair i of the token at position m by angle m·θ_i. Because rotations compose, the dot product of a rotated query and key depends only on the offset m − n.",
+ eq:"θ_i = b^{−2i/d}   (b = 10000)\nq'_m = R(m θ) q_m ,  k'_n = R(n θ) k_n\nq'_mᵀ k'_n = q_mᵀ R((n − m) θ) k_n",
+ buys:["Relative position inside the dot product, with no parameters","Keys are rotated once when stored, so it works with a KV cache","Many frequencies, from local detail to long range"],
+ costs:["Rotation angles at distances never seen in training are out of distribution, so the model breaks past its training length","The slowest dimensions never complete a full turn during training"],
+ when:"The default for decoder LLMs: GPT-J, LLaMA, Mistral, Qwen. Some models rotate only part of each head: DeepSeek-V2/V3 use a separate 64-dim rotary key, and DeepSeek-V4 rotates 64 of each head's 512 dims.",
+ next:"Handle inputs longer than the training length.",viz:"rope"},
+{id:"alibi",bill:"Position and length",fit:["Works well.","Poor: the distance penalty hides the far context you wanted."],ans:"pi",date:"2021-08-27",short:"ALiBi",title:"Attention with linear biases (ALiBi)",thread:"pos",
+ src:{label:"Press, Smith & Lewis, Train Short, Test Long, arXiv 2108.12409 (v1)",url:"https://arxiv.org/abs/2108.12409"},
+ existed:"Sinusoidal, rotary and T5-style positions.",
+ problem:"The authors find that existing position methods do not allow efficient extrapolation. Sinusoidal models degrade almost as soon as inputs pass the training length; rotary manages only a little further; T5's bias extrapolates better but trains and runs noticeably slower.",
+ mech:"Drop position embeddings. Subtract a penalty proportional to distance from every score, with a different fixed slope per head (1/2, 1/4, …, 1/256 for 8 heads).",
+ eq:"score_ij = q_i · k_j / √d − m_h · (i − j)",
+ buys:["A 1.3B model trained at 1,024 tokens matches a sinusoidal model trained at 2,048 on 2,048-token inputs, while training 11% faster with 11% less memory (authors' figures)","No parameters; built-in recency bias"],
+ costs:["The penalty makes far tokens nearly invisible: it extrapolates in perplexity, not in actually using distant information","Weak at long-range retrieval","A per-head bias matrix needs kernel support"],
+ when:"Models where local context dominates. BLOOM and MPT used it; most later LLMs chose RoPE plus context extension instead.",
+ next:"Extend RoPE models, which became the default in open LLMs during 2022–23 (GPT-NeoX, LLaMA), without losing long-range access.",viz:"alibi"},
+{type:"shift",date:"2022-05-01",text:"The systems answer: instead of approximating attention to save FLOPs, make exact attention fast on the hardware that runs it."},
+{id:"flash",bill:"Speed and activation memory",fit:["Yes.","Yes, but it does not shrink the KV cache or the n² FLOPs."],ans:"gqa",date:"2022-05-27",short:"FlashAttention",title:"FlashAttention (IO-aware exact attention)",thread:"sys",added:true,
+ src:{label:"Dao et al., arXiv 2205.14135 (v1)",url:"https://arxiv.org/abs/2205.14135"},
+ existed:"Dense attention implementations that write the full n × n score matrix to GPU main memory (HBM), and approximate methods (sparse, linear) that cut FLOPs.",
+ problem:"Attention was slow because of memory traffic, not arithmetic. Approximate methods reduced FLOPs but often gave no wall-clock speedup.",
+ mech:"Split Q, K and V into tiles that fit in on-chip SRAM. Compute softmax incrementally with a running maximum and running sum, so the n × n matrix is never stored. Recompute it in the backward pass instead of saving it.",
+ eq:"for each K,V tile:  m' = max(m, rowmax(S))\n  ℓ' = e^{m−m'} ℓ + rowsum(e^{S−m'})\n  O' = e^{m−m'} O + e^{S−m'} V\nafter the last tile:  O = O / ℓ",
+ buys:["Exactly the same result as standard attention","Activation memory linear in n instead of n²","Authors report 3× speedup on GPT-2 training"],
+ costs:["Still O(n²) FLOPs, and it does not shrink the KV cache","Hand-written kernels per GPU generation; every new mask, bias or head layout needs kernel work"],
+ when:"By default in training and serving. Skip it only when no kernel supports your GPU or your mask/bias pattern, or when sequences are so short that kernel overhead dominates.",
+ next:"With exact attention cheap to train, the bottlenecks that remain are the KV cache and context length.",viz:"flash",
+ note:"Added because it explains a turn in the story: after 2022, few frontier models used approximate attention for training speed, and effort moved to KV memory and position. Its ingredients are older: online softmax (Milakov & Gimelshein, arXiv 1805.02867, May 2018) and exact attention in linear memory (Rabe & Staats, arXiv 2112.05682, Dec 2021). FlashAttention's contribution was the IO-aware tiling that made it fast."},
+{id:"gqa",bill:"KV memory",fit:["The default.","Necessary but not sufficient: the cache still grows linearly."],ans:"mla",date:"2023-05-22",short:"GQA",title:"Grouped-query attention",thread:"kv",
+ src:{label:"Ainslie et al., arXiv 2305.13245 (v1)",url:"https://arxiv.org/abs/2305.13245"},
+ existed:"MHA (best quality, biggest cache) and MQA (smallest cache, some quality loss).",
+ problem:"MQA can hurt quality, and nobody wanted to pretrain a separate model just for faster inference.",
+ mech:"Divide the H query heads into G groups; each group shares one K and one V head. G = H is MHA, G = 1 is MQA. Existing MHA checkpoints can be converted by mean-pooling heads and uptraining with about 5% of the original compute.",
+ eq:"KV heads = G      cache ∝ 2 · L · G · d_head · n",
+ buys:["Quality close to MHA at speed close to MQA (authors' result)","A dial between the two instead of a binary choice","Converts existing checkpoints cheaply"],
+ costs:["The cache still grows linearly with context","Less reduction than MQA","Sharing heads is a blunt tool: all heads in a group must read the same keys"],
+ when:"The default for mid-size and large models: Llama 2 70B, Llama 3, Mistral. Try the KV calculator in the MLA card.",
+ next:"Shrink the cache without forcing heads to share keys.",viz:"heads-gqa"},
+{type:"shift",date:"2023-06-20",text:"Open LLaMA weights arrive with a 2K window. The community wants 8K, 32K and 128K from the same weights without pretraining again. RoPE's weakness at unseen distances is now the bottleneck."},
+{id:"pi",bill:"Length",fit:["Not needed.","Too far a stretch: squeezing every frequency blurs local order."],ans:"ntk",date:"2023-06-27",short:"PI",title:"Position interpolation",thread:"len",added:true,
+ src:{label:"Chen et al. (Meta), arXiv 2306.15595 (v1)",url:"https://arxiv.org/abs/2306.15595"},
+ existed:"RoPE models trained at 2,048 tokens that fail beyond it.",
+ problem:"Running at a longer length feeds the model rotation angles it has never seen, and attention scores blow up.",
+ mech:"Instead of extrapolating, squeeze: multiply every position by L/L' so all positions fall inside the trained range, then fine-tune briefly (about 1,000 steps).",
+ eq:"m → m · L / L'      (equivalently θ_i → θ_i / s,  s = L'/L)",
+ buys:["LLaMA 7B–65B extended from 2K to 32K with a short fine-tune (authors' result)","One line of code"],
+ costs:["Every frequency is squeezed, including the fast ones that separate neighbouring tokens, so fine local order gets blurred","Requires fine-tuning; slight loss on short inputs"],
+ when:"A quick extension when you have a fine-tuning budget. Largely superseded by YaRN.",
+ next:"Squeeze the slow frequencies but leave the fast ones alone.",viz:"freq-pi",
+ note:"Added because NTK-aware scaling was written as a direct reaction to it. kaiokendev's SuperHOT blog did the same interpolation a few days earlier; the Meta paper acknowledges it as concurrent work."},
+{id:"ntk",bill:"Length",fit:["Not needed.","Only small factors without fine-tuning."],ans:"yarn",date:"2023-06-29",short:"NTK-aware",title:"NTK-aware scaled RoPE",thread:"len",
+ src:{label:"bloc97, Reddit r/LocalLLaMA post (no paper)",url:"https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/"},
+ existed:"Position interpolation, which scales every RoPE frequency by the same factor.",
+ problem:"Uniform squeezing destroys high-frequency information, the dimensions that tell adjacent tokens apart. That is why PI needs fine-tuning.",
+ mech:"Change the RoPE base instead of the positions. A larger base leaves the fastest dimensions almost unchanged and stretches the slowest ones by about s: high frequencies extrapolate, low frequencies interpolate.",
+ eq:"b' = b · s^{d/(d−2)}\nθ'_i = b'^{−2i/d}",
+ buys:["Longer context with no fine-tuning at all, and much lower perplexity than untuned PI","A three-line change; spread quickly through llama.cpp and Hugging Face"],
+ costs:["One base change for all dimensions is a heuristic; some middle dimensions still land slightly out of distribution","No paper or formal evaluation at the time","Later comparisons (YaRN paper) found it did worse than PI once both were fine-tuned"],
+ when:"Quick, training-free extension by a small factor. The dynamic variant raises the scale only as the sequence grows.",
+ next:"Treat each frequency band on its own terms.",viz:"freq-ntk",
+ note:"Date from archived copies and citing sources; Reddit blocks direct access without sign-in. bloc97 is Bowen Peng, first author of YaRN."},
+{id:"yarn",bill:"Length",fit:["Not needed.","Proven to about 128K; a million tokens is a much larger stretch."],ans:"drope",date:"2023-08-31",short:"YaRN",title:"YaRN",thread:"len",
+ src:{label:"Peng, Quesnelle, Fan & Shippole, arXiv 2309.00071 (v1)",url:"https://arxiv.org/abs/2309.00071"},
+ existed:"PI (squeeze everything) and NTK-aware (change the base).",
+ problem:"Neither respects that each RoPE dimension has its own wavelength relative to the training context. Longer contexts also make attention distributions flatter.",
+ mech:"NTK-by-parts: dimensions whose wavelength is much shorter than the training context are left alone; dimensions longer than it are fully interpolated; a linear ramp covers the middle. A temperature on the logits corrects the entropy shift.",
+ eq:"r_i = L / λ_i ,  γ_i = clamp((r_i − α)/(β − α), 0, 1)\nθ'_i = (1 − γ_i) θ_i / s + γ_i θ_i        (α=1, β=32)\n√(1/t) = 0.1 ln s + 1",
+ buys:["Authors report 10× fewer tokens and 2.5× fewer steps than prior methods for extension","Extends LLaMA 2 to 128K; later used by Qwen and DeepSeek"],
+ costs:["Still needs a short fine-tune for best results","Three hyperparameters (α, β, temperature)","The model is still tied to RoPE's trained frequencies"],
+ when:"The standard way to extend an existing RoPE model's context. Drag the scale below to compare all three methods.",
+ next:"Ask whether the positional embedding should be there at all at long range (DroPE, 2025).",viz:"freq-yarn"},
+{id:"sinks",bill:"KV memory (streaming)",fit:["Not needed.","Only for streaming where the far past can be forgotten; it cannot recall it."],ans:"gated-attn",date:"2023-09-29",short:"Sinks",title:"Attention sinks (StreamingLLM)",thread:"len",
+ src:{label:"Xiao et al., Efficient Streaming Language Models with Attention Sinks, arXiv 2309.17453 (v1)",url:"https://arxiv.org/abs/2309.17453"},
+ existed:"Sliding-window caches that keep only the most recent tokens.",
+ problem:"Window attention collapses as soon as the first tokens are evicted, even though those tokens carry little meaning.",
+ mech:"Softmax must put its weight somewhere, and models learn to dump spare attention on the first few tokens. Keep the KV entries of those first ~4 tokens permanently, plus the rolling window. A dedicated sink token can be added during pretraining.",
+ eq:"cache = KV[0:4]  ∪  KV[t−w : t]",
+ buys:["Stable generation over 4 million tokens with a fixed-size cache, with no fine-tuning","Up to 22.2× faster than recomputing a sliding window (authors' figure)"],
+ costs:["Does not extend memory: evicted tokens are gone, so it cannot answer questions about them","Sinks are chosen by position, not content: nothing between the sinks and the window is ever read","Positions must be assigned inside the rolling cache rather than from the original text","Works around a softmax artifact instead of removing it"],
+ when:"Endless streaming chat where only recent context matters. Later models build the sink in: gpt-oss adds a learned sink logit per head.",
+ next:"Remove the artifact itself.",viz:"sinks",
+ note:"Related at the same time: Evan Miller's post \"Attention Is Off By One\" (Jul 2023) argued softmax should be allowed to output nothing, and a vision paper on \"registers\" (arXiv 2309.16588) reported similar sink-like tokens in ViTs the same week."},
+{type:"shift",date:"2024-05-01",text:"Serving at scale: the KV cache, not FLOPs, sets how many users fit on a GPU. Sharing heads was the first fix; compressing what each token stores is the next."},
+{id:"mla",bill:"KV memory",fit:["The added complexity is rarely worth it at this size.","A strong cache saving, but the cache still grows with every token."],ans:"dsa",date:"2024-05-07",short:"MLA",title:"Multi-head latent attention (MLA)",thread:"kv",
+ src:{label:"DeepSeek-AI, DeepSeek-V2, arXiv 2405.04434 (v1), §2.1",url:"https://arxiv.org/abs/2405.04434"},
+ existed:"GQA and MQA, which save memory by making heads share keys and values.",
+ problem:"Sharing heads trades quality for memory. The goal is a cache smaller than GQA's while every head keeps its own keys and values.",
+ mech:"Compress each token's hidden state into one small latent vector c (512 dims in V2) and cache only that. Per-head K and V are up-projections of c. At inference the up-projection matrices are absorbed into the query and output projections, so K and V are never materialized. RoPE does not survive absorption, so a small shared rotary key (64 dims) is cached alongside.",
+ eq:"c_t = W_DKV h_t                 (cached, d_c = 512)\nk_t,h = W_UK,h c_t ,  v_t,h = W_UV,h c_t\nk_rope,t = RoPE(W_KR h_t)       (cached, 64 dims)",
+ buys:["KV cache 93.3% smaller and max throughput 5.76× higher than DeepSeek 67B (authors' figures)","Every head keeps its own effective keys and values, so quality does not pay for the saving the way MQA does","Decoding reads fewer bytes per token and does more arithmetic per byte, which suits bandwidth-bound GPUs"],
+ costs:["Not the smallest cache: 576 numbers per token per layer, versus 256 for MQA with head dim 128. It is about the size of GQA with 2–3 KV heads (see the calculator)","More complex: extra projections, the decoupled-RoPE workaround, dedicated kernels (FlashMLA)","The cache still grows linearly with context"],
+ when:"Large-scale serving where KV memory dominates cost: DeepSeek V2/V3, Kimi K2.",
+ next:"Linear growth remains. Next: attend to fewer tokens (sparsity) or fewer entries (compression).",viz:"kvcalc"},
+{type:"shift",date:"2024-12-01",text:"Recurrent state returns. Linear attention's old weakness was imprecise memory; the delta rule fixes writing, and gating fixes forgetting."},
+{id:"gdn",bill:"Compute and KV memory",fit:["No need.","A good choice for the recurrent layers of a hybrid."],ans:"nsa",date:"2024-12-09",short:"Gated DeltaNet",title:"Gated DeltaNet",thread:"rec",
+ src:{label:"Yang, Kautz & Hatamizadeh, arXiv 2412.06464 (v1)",url:"https://arxiv.org/abs/2412.06464"},
+ existed:"DeltaNet (precise overwrites, now parallelizable) and Mamba2 (fast, gate-based forgetting).",
+ problem:"The delta rule edits one key at a time but cannot clear stale memory quickly. Gating forgets fast but imprecisely. Each has what the other lacks.",
+ mech:"Multiply the state by a data-dependent decay α_t before the delta update. α near 0 wipes memory at a context switch; α near 1 keeps it. Trained with a chunkwise parallel algorithm.",
+ eq:"S_t = α_t S_{t-1}(I − β_t k_t k_tᵀ) + β_t v_t k_tᵀ      α_t ∈ (0,1)",
+ buys:["Beats Mamba2 and DeltaNet on language modeling, recall and length extrapolation in the authors' tests","Linear-time training, constant memory per generated token"],
+ costs:["Still a fixed-size state: exact recall of an arbitrary old token is not guaranteed","Best results come from hybrids that keep some full-attention layers, so the KV cache does not disappear","Specialized kernels"],
+ when:"As the R layers in a hybrid schedule (see the 2021 hybrid card). Qwen3-Next pairs Gated DeltaNet layers with gated attention layers.",
+ next:"Keep a few exact-attention layers, and make those cheaper too.",viz:"memdemo-gated"},
+{type:"shift",date:"2025-02-01",text:"Sparsity returns, this time trained end to end and shaped for GPU blocks rather than drawn by hand."},
+{id:"nsa",bill:"Compute",fit:["Overhead without payoff.","A good fit if you are pretraining for long context."],ans:"csa",date:"2025-02-16",short:"NSA",title:"Native sparse attention (NSA)",thread:"sparse",added:true,
+ src:{label:"Yuan et al. (DeepSeek), arXiv 2502.11089 (v1)",url:"https://arxiv.org/abs/2502.11089"},
+ existed:"Top-k and fixed-pattern sparsity, mostly applied at inference time and often slower in practice than dense FlashAttention.",
+ problem:"Sparse methods that are not trained with the sparsity lose quality, and methods that scatter single tokens run badly on GPUs.",
+ mech:"Three branches per query, mixed by learned gates: compressed attention over pooled blocks (coarse view of everything), selected attention over the top-n blocks ranked by those compressed scores (fine detail where it matters), and a sliding window (local context). Selection is shared across a GQA group so memory access stays blockwise.",
+ eq:"o = g_cmp·Attn(q, K_cmp) + g_slc·Attn(q, K_topblocks) + g_win·Attn(q, K_window)",
+ buys:["Trained natively; matches or beats full attention in the authors' benchmarks","Speedups over FlashAttention at 64K in decoding, forward and backward"],
+ costs:["Three branches plus gates: more moving parts","Block granularity: a single important token drags in its whole block","Best with GQA-style grouping"],
+ when:"Pretraining a long-context model from scratch.",
+ next:"Its compress-then-select structure reappears in DeepSeek-V4's CSA.",viz:"nsa",
+ note:"Added because it is the published origin of the compress + select + window design that CSA builds on."},
+{id:"gated-attn",bill:"Quality and stability",fit:["Yes, if pretraining: cheap and stabilizing.","Yes for quality, but it does nothing for cost."],ans:"dsa",date:"2025-05-10",short:"Gated attn",title:"Gated attention (output gate)",thread:"sys",added:true,
+ src:{label:"Qiu et al. (Qwen), arXiv 2505.06708",url:"https://arxiv.org/abs/2505.06708"},
+ existed:"Attention sinks as a known artifact; loss spikes in large MoE training.",
+ problem:"Because softmax must sum to 1, heads park attention on the first token. Also, the value and output projections form a purely linear low-rank map.",
+ mech:"Multiply each head's attention output by a sigmoid gate computed from the input, before the output projection. A head can now output close to zero instead of attending to a sink.",
+ eq:"Y = SDPA(Q, K, V) ⊙ σ(X W_θ)",
+ buys:["Consistent gains across 30 variants at 1.7B dense and 15B MoE scale (authors' study)","More stable training, tolerates larger learning rates","Removes the attention sink and improves length extrapolation"],
+ costs:["Extra parameters (a projection per layer) and an extra elementwise pass over the attention output","Saves no memory or FLOPs; it does nothing for long-context cost","Evidence so far comes mainly from one lab's study and its own models"],
+ when:"New pretraining runs, especially MoE. Used in Qwen3-Next.",
+ next:"It improves quality and stability but not cost; the cost thread continues with sparse selection.",viz:"none",
+ note:"Added because it explains attention sinks from the other side: a sink is a symptom that a head had nowhere else to put its weight."},
+{id:"dsa",bill:"Compute",fit:["No: the indexer is pure overhead at 2K.","Yes for compute, but every token's KV entry is still stored."],ans:"csa",date:"2025-09-29",short:"DSA",title:"DeepSeek Sparse Attention (DSA)",thread:"sparse",added:true,
+ src:{label:"DeepSeek-V3.2-Exp release; FlashMLA changelog 2025.09.29; tech report on GitHub (no arXiv v1 at release)",url:"https://github.com/deepseek-ai/FlashMLA"},
+ existed:"MLA with a small cache, but every query still attends to every past token; top-k from 2019 that computes all scores to choose.",
+ problem:"At 128K, attention compute per token still grows with context length. Top-k needs a cheap way to pick the top k.",
+ mech:"A lightning indexer (a few small heads, FP8, ReLU scores) scores every past token cheaply. Only the top 2,048 tokens go to the main MLA attention. The indexer is first trained to imitate the dense model's attention (KL loss), then the whole model adapts to sparse selection.",
+ eq:"I_t,s = Σ_j w_t,j · ReLU(q^I_t,j · k^I_s)\nS_t = top-k_s(I_t,s)            (k = 2048)\no_t = MLA(q_t, {c_s : s ∈ S_t})",
+ buys:["Main attention cost O(n·k) instead of O(n²)","Quality close to the dense predecessor V3.1-Terminus; DeepSeek cut API prices by about half"],
+ costs:["The indexer still scans every token (cheaply, but O(n²) overall)","All KV entries must still be stored: memory is not reduced","A token the indexer misses is invisible to that query"],
+ when:"Long-context serving when attention compute dominates and you already have MLA.",
+ next:"Reduce the number of stored entries as well as the ones read.",viz:"dsa",
+ note:"Added because CSA is defined as compression followed by DSA."},
+{id:"drope",bill:"Length",fit:["Not needed.","Unproven at this stretch: the paper's main comparisons are at a few times the training length, not a thousand."],ans:"csa",date:"2025-12-13",short:"DroPE",title:"DroPE: dropping positional embeddings",thread:"len",
+ src:{label:"Gelberg, Eguchi, Akiba & Cetin (Sakana AI), arXiv 2512.12167",url:"https://arxiv.org/abs/2512.12167"},
+ existed:"RoPE scaling methods (PI, NTK, YaRN), and NoPE models that use no positional embedding.",
+ problem:"The slowest RoPE frequencies never complete a turn within the training length, so every scaling method (PI, NTK, YaRN) has to compress exactly those. The paper shows low frequencies are used mostly by semantic heads, which match on content, so compressing them moves attention in the heads that do long-range retrieval. Models with no positional embedding (NoPE) avoid this but train slowly: at initialization their attention is near-uniform and gets almost no positional gradient.",
+ mech:"Use RoPE as a training scaffold. Pretrain with it, then remove the rotation from every layer and every head and recalibrate all weights briefly at the original context length. At inference the model is a plain NoPE transformer at any length, with no temperature or rescaling tricks. Order information still comes through the causal mask.",
+ eq:"phase 1: pretrain with RoPE          (fast convergence)\nphase 2: drop R(mθ) in all layers,\n         recalibrate at original length\n         (QK-norm added for the long SmolLM runs)\ninference: NoPE at any length, no scaling",
+ buys:["Zero-shot context extension without long-context data or fine-tuning","Semantic heads keep their trained attention, since no frequency is compressed","On SmolLM-360M, LongBench average 30.52 vs 19.94 for YaRN and 2.98 for the base model; over 95% of short-context performance recovered within 5B tokens, 0.8% of its pretraining budget (authors' figures)"],
+ costs:["Recalibration still costs tokens: about 0.5% of pretraining for Llama-2-7B, up to roughly 20% in the longest SmolLM-360M run","Longer recalibration needed QK-norm to stay stable","No explicit position signal is left, so it only suits causal decoders","New (Dec 2025); tested up to 7B parameters, not at frontier scale"],
+ when:"Extending an existing RoPE model when you can afford a short recalibration but not long-context training data.",
+ next:"Open questions: does dropping positions hold at frontier scale and far beyond the 2× tested? DeepSeek-V4 takes the other road and trains long natively.",viz:"drope",
+ note:"Details checked against the full paper (arXiv 2512.12167 v1): method section, Table 2 and the recalibration setup. Sakana's blog quotes under 1% of pretraining for off-the-shelf LLMs; the paper's own runs range from about 0.5% to 20%."},
+{type:"shift",date:"2026-04-01",text:"Compression becomes aggressive. MLA made each cache entry smaller; now the number of entries shrinks too, for million-token contexts."},
+{id:"csa",bill:"KV memory and compute",fit:["No: all the machinery, none of the benefit.","Designed for it, if lossy access to the far past is acceptable."],date:"2026-04-24",short:"CSA / HCA",title:"Compressed Sparse Attention and Heavily Compressed Attention",thread:"sparse",
+ src:{label:"DeepSeek-V4 Preview release (api-docs.deepseek.com, 24 Apr 2026); report arXiv 2606.19348 (26 Apr 2026)",url:"https://arxiv.org/abs/2606.19348"},
+ existed:"MLA (compress each entry) plus DSA (read only the top-k entries). One stored entry per token, and an indexer that scans all of them.",
+ problem:"At one million tokens, even one small entry per token is a large cache, and scanning every token for the indexer is expensive.",
+ mech:"CSA pools every m tokens (m = 4) into one KV entry using learned pooling weights over overlapping windows (per the V4 report's equations and released inference code), then applies DSA over the compressed entries. HCA pools far more (128 tokens per entry) and attends densely over the short compressed sequence. Both keep a sliding window of recent uncompressed tokens. Layers alternate between CSA and HCA. Position uses partial RoPE: 64 of each head's 512 dimensions are rotated (the trailing ones, in the Hugging Face implementation).",
+ eq:"CSA: entries = n/4  , top-k compressed entries + window\nHCA: entries = n/128, all compressed entries   + window\nV4-Flash config: 43 layers; first two uncompressed,\n  then alternating 4 / 128; window 128,\n  index top-k 512, RoPE on 64 of 512 dims",
+ buys:["Fewer stored entries, not just smaller ones: 4× and 128× fewer","1M-token context as the default across DeepSeek's services"],
+ costs:["Lossy: token-level detail from far back is pooled away","Many parts to tune and serve: compressor, indexer, window, interleaving, new kernels","Intermediate score tensors can be very large without careful kernels (StreamIndex, 2026)"],
+ when:"Million-token agents where cost dominates and approximate access to the distant past is acceptable.",
+ next:"The open question for 2026: how much of the far past can be pooled before agents miss what matters?",viz:"csa",
+ note:"Configuration values are from the released DeepSeek-V4-Flash config.json on Hugging Face (head_dim 512, qk_rope_head_dim 64, compress_ratios 0, 0, then alternating 4 and 128, sliding_window 128, index_topk 512)."}
+];
+
+/* ---------- helpers ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r){let u=0;while(u===0)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function fmtDate(iso){const [y,m,d]=iso.split("-").map(Number);const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return {day:d+" "+M[m-1],year:y}}
+function mix(color,pct){return `color-mix(in oklab, ${color} ${Math.round(pct)}%, var(--surface))`}
+
+/* ---------- pipeline ---------- */
+const TOK=["The","cat","sat","on","mat"],N=5,DV=4;
+const P={dk:64,causal:true,scaled:true,sel:2,seed:7};
+function gen(){const r=mulberry32(P.seed*1000+P.dk);const m=(a,b)=>Array.from({length:a},()=>Array.from({length:b},()=>gauss(r)));return {Q:m(N,P.dk),K:m(N,P.dk),V:m(N,DV)}}
+function softmaxRow(row){const mx=Math.max(...row.filter(x=>x!==-Infinity));const e=row.map(x=>x===-Infinity?0:Math.exp(x-mx));const s=e.reduce((a,b)=>a+b,0);return e.map(x=>x/s)}
+function compute(scaled){const {Q,K,V}=gen();const S=Q.map(q=>K.map(k=>q.reduce((a,x,i)=>a+x*k[i],0)));const sc=scaled?1/Math.sqrt(P.dk):1;const Sc=S.map(r=>r.map(x=>x*sc));const Mk=Sc.map((r,i)=>r.map((x,j)=>P.causal&&j>i?-Infinity:x));const W=Mk.map(softmaxRow);const O=W.map(w=>Array.from({length:DV},(_,c)=>w.reduce((a,x,j)=>a+x*V[j][c],0)));return {S,Sc,Mk,W,V,O}}
+function matHTML(M,{kind,cols,rowLabels,colLabels,dec=1,sel}){
+  const nc=M[0].length;let h=`<div class="mat" style="grid-template-columns:34px repeat(${nc},40px)">`;
+  h+=`<span></span>`+colLabels.map(c=>`<span class="ch">${c}</span>`).join("");
+  let mx=0;M.forEach(r=>r.forEach(x=>{if(isFinite(x))mx=Math.max(mx,Math.abs(x))}));mx=mx||1;
+  M.forEach((r,i)=>{
+    h+=rowLabels?`<button class="rh" type="button" data-row="${i}" aria-pressed="${i===sel}" aria-label="Follow token ${rowLabels[i]}">${rowLabels[i]}</button>`:`<span class="rh">${i}</span>`;
+    r.forEach(x=>{
+      if(x===-Infinity){h+=`<span class="c neg-inf${i===sel?" sel":""}">−∞</span>`;return}
+      let bg;
+      if(kind==="prob")bg=mix("var(--heat)",x*85);
+      else bg=x>=0?mix("var(--heat)",Math.abs(x)/mx*70):mix("var(--warm)",Math.abs(x)/mx*70);
+      const txt=Math.abs(x)>=100?x.toFixed(0):x.toFixed(dec);
+      h+=`<span class="c${i===sel?" sel":""}" style="background:${bg}">${txt}</span>`;
+    });
+  });
+  return h+"</div>";
+}
+function entropy(w){return -w.reduce((a,p)=>a+(p>0?p*Math.log2(p):0),0)}
+function renderPipe(){
+  const R=compute(P.scaled),Alt=compute(!P.scaled);
+  const tl=TOK.map(t=>t.slice(0,4));
+  const st=(n,label,html)=>`<div class="stage"><div class="st-label"><b>${n}</b>${label}</div>${html}</div>`;
+  const arr=`<div class="arrow" aria-hidden="true">→</div>`;
+  let h="";
+  h+=st("1","Q·Kᵀ  scores",matHTML(R.S,{kind:"div",rowLabels:tl,colLabels:tl,sel:P.sel}))+arr;
+  h+=st("2",P.scaled?"÷ √d_k = ÷ "+Math.sqrt(P.dk).toFixed(0):"scaling skipped",matHTML(R.Sc,{kind:"div",rowLabels:tl,colLabels:tl,sel:P.sel}))+arr;
+  h+=st("3",P.causal?"+ causal mask":"no mask",matHTML(R.Mk,{kind:"div",rowLabels:tl,colLabels:tl,sel:P.sel}))+arr;
+  h+=st("4","softmax by row",matHTML(R.W,{kind:"prob",rowLabels:tl,colLabels:tl,dec:2,sel:P.sel}))+arr;
+  h+=st("5","V  (values)",matHTML(R.V,{kind:"div",rowLabels:tl,colLabels:["v1","v2","v3","v4"],dec:2,sel:-1}))+arr;
+  h+=st("6","output = weights · V",matHTML(R.O,{kind:"div",rowLabels:tl,colLabels:["o1","o2","o3","o4"],dec:2,sel:P.sel}));
+  $("#stages").innerHTML=h;
+  const w=R.W[P.sel],wa=Alt.W[P.sel];const top=Math.max(...w),topA=Math.max(...wa);
+  const vis=w.filter((_,j)=>!(P.causal&&j>P.sel)).length;
+  const flat=R.Sc.flat();const mu=flat.reduce((a,b)=>a+b,0)/flat.length;const sd=Math.sqrt(flat.reduce((a,b)=>a+(b-mu)**2,0)/flat.length);
+  $("#readout").innerHTML=`<span>Following <b>"${TOK[P.sel]}"</b> · can see ${vis} token${vis>1?"s":""}</span>`+
+   `<span>std of the scores in step 2 ≈ ${sd.toFixed(1)} (theory: ${P.scaled?"1":"√d_k = "+Math.sqrt(P.dk).toFixed(0)})</span>`+
+   `<span>top weight <b>${top.toFixed(2)}</b> · entropy <b>${entropy(w).toFixed(2)}</b> bits</span>`+
+   `<span class="${!P.scaled?"warn":""}">${P.scaled?"without":"with"} ÷√d_k the top weight would be <b>${topA.toFixed(2)}</b></span>`;
+  document.querySelectorAll("#stages .rh[data-row]").forEach(b=>b.addEventListener("click",()=>{P.sel=+b.dataset.row;renderPipe()}));
+}
+function initPipe(){
+  const seg=$("#dk-seg");[4,16,64,256].forEach(d=>{const b=document.createElement("button");b.type="button";b.textContent=d;b.setAttribute("aria-pressed",d===P.dk);b.addEventListener("click",()=>{P.dk=d;seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderPipe()});seg.appendChild(b)});
+  const tm=$("#t-mask");tm.addEventListener("click",()=>{P.causal=!P.causal;tm.setAttribute("aria-pressed",P.causal);tm.textContent=P.causal?"Causal mask on":"Causal mask off";renderPipe()});
+  const ts=$("#t-scale");ts.addEventListener("click",()=>{P.scaled=!P.scaled;ts.setAttribute("aria-pressed",P.scaled);ts.innerHTML=P.scaled?"÷√d<sub>k</sub> on":"÷√d<sub>k</sub> off";renderPipe()});
+  $("#t-seed").addEventListener("click",()=>{P.seed++;renderPipe()});
+  renderPipe();
+}
+
+/* ---------- mini mask grids ---------- */
+function grid(n,fn,label){let h=`<div><div class="mgrid" style="grid-template-columns:repeat(${n},9px)" role="img" aria-label="${label} attention pattern">`;for(let i=0;i<n;i++)for(let j=0;j<n;j++){const v=j>i?"u":fn(i,j);h+=`<span class="${v||""}"></span>`}return h+`</div><div class="glabel">${label}</div></div>`}
+const n16=16;
+function pseudo(i,j,s){const r=mulberry32(i*131+j*17+s);return r()}
+function topkSet(i,k,s){const c=[];for(let j=0;j<=i;j++)c.push([pseudo(i,j,s),j]);c.sort((a,b)=>b[0]-a[0]);return new Set(c.slice(0,k).map(x=>x[1]))}
+const LEG={a:'<i style="background:var(--heat)"></i>',b:'<i style="background:color-mix(in oklab,var(--heat) 45%,var(--surface))"></i>',s:'<i style="background:var(--warm)"></i>',o:'<i style="background:var(--soft)"></i>',n:'<i style="background:color-mix(in oklab,var(--heat) 16%,var(--surface));outline:1px dashed var(--line);outline-offset:-1px"></i>'};
+const VIZ={
+ none:()=>"",
+ sdpa:()=>`<div class="grids">${grid(n16,()=> "a","full causal")}</div><p class="cap">Every query row attends to every earlier key. Row i costs i reads; the full table costs about n²/2.</p>`,
+ strided:()=>`<div class="grids">${grid(n16,(i,j)=>(i-j<4||(i-j)%4===0)?"a":"","strided, l = 4")}${grid(n16,()=> "a","dense, for scale")}</div><p class="cap">Local band plus every 4th position. Fixed in advance, whatever the text says.</p>`,
+ topk:()=>{const S={};return `<div class="grids">${grid(n16,(i,j)=>{S[i]=S[i]||topkSet(i,4,3);return S[i].has(j)?"a":"b"},"top-4 of computed scores")}</div><div class="legend"><span>${LEG.a}kept</span><span>${LEG.b}scored, then dropped</span></div><p class="cap">Illustrative scores. Content picks the pattern, but every light cell was still computed to find the winners.</p>`},
+ sliding:()=>`<div class="grids">${grid(n16,(i,j)=>i-j<4?"a":"","window w = 4")}</div><p class="cap">A band along the diagonal. After L layers information can travel about L × w positions.</p>`,
+ sinks:()=>`<div class="grids">${grid(n16,(i,j)=>j<2?"s":(i-j<4?"a":""),"2 sinks + window 4")}${grid(n16,(i,j)=>i-j<4?"a":"","window only")}</div><div class="legend"><span>${LEG.s}sink tokens kept forever</span><span>${LEG.a}rolling window</span></div><p class="cap">The window alone collapses once token 0 is evicted; keeping a few first tokens restores it.</p>`,
+ nsa:()=>{const B=4;return `<div class="grids">${grid(n16,(i,j)=>{if(i-j<3)return "a";const cb=Math.floor(i/B);const bj=Math.floor(j/B);if(bj>=cb)return "";const sel=Math.floor(pseudo(i,0,5)*cb);return bj===sel?"s":"b"},"NSA, block 4")}</div><div class="legend"><span>${LEG.b}compressed block summary</span><span>${LEG.s}selected block, full detail</span><span>${LEG.a}sliding window</span></div><p class="cap">Illustrative selection. Coarse view of everything, fine view of the chosen block, full view of the recent past.</p>`},
+ dsa:()=>{const S={};return `<div class="grids">${grid(n16,(i,j)=>{S[i]=S[i]||topkSet(i,5,9);return S[i].has(j)?"a":"b"},"indexer top-5")}</div><div class="legend"><span>${LEG.a}attended by MLA</span><span>${LEG.b}scored only by the cheap indexer</span></div><p class="cap">Same shape as 2019's top-k, but the light cells are now scored by a tiny FP8 indexer instead of full attention.</p>`},
+ csa:()=>{return `<div class="grids">${grid(n16,(i,j)=>{const bj=Math.floor(j/4);if(bj*4+3>i-3)return "a";return pseudo(i,bj,11)>0.5?"s":"n"},"CSA: ÷4, top-k read")}${grid(n16,(i,j)=>{const bj=Math.floor(j/8);if(bj*8+7>i-3)return "a";return "s"},"HCA: ÷8 (÷128 real), all read")}</div><div class="legend"><span>${LEG.s}compressed entry, read</span><span>${LEG.n}compressed entry, stored but not read</span><span>${LEG.a}recent uncompressed tokens</span></div><p class="cap">Illustrative. Each coloured run is one stored entry covering several tokens. CSA reads only the entries its indexer selects; HCA reads all of its few, heavily pooled entries.</p>`},
+ alibi:()=>{
+   const g=(m,label)=>{let s=`<div><div class="mgrid" style="grid-template-columns:repeat(16,9px)" role="img" aria-label="ALiBi bias, slope ${label}">`;for(let i=0;i<16;i++)for(let j=0;j<16;j++){if(j>i){s+=`<span class="u"></span>`;continue}const b=Math.exp(-m*(i-j));s+=`<span style="background:${mix("var(--heat)",b*90)}"></span>`}return s+`</div><div class="glabel">slope ${label}</div></div>`};
+   return `<div class="grids">${g(0.5,"1/2")}${g(1/16,"1/16")}</div><p class="cap">Shade shows e<sup>−m·(i−j)</sup>, the factor the bias multiplies into the attention weight. Steep heads look only nearby; shallow heads see further.</p>`},
+ learned:()=>{const r=mulberry32(4);let s=`<div class="mgrid" style="grid-template-columns:repeat(16,9px)" role="img" aria-label="Learned position table">`;for(let i=0;i<12;i++)for(let j=0;j<16;j++){const v=gauss(r);s+=`<span style="background:${v>=0?mix("var(--heat)",Math.min(1,Math.abs(v)/2)*80):mix("var(--warm)",Math.min(1,Math.abs(v)/2)*80)}"></span>`}for(let i=0;i<4;i++)for(let j=0;j<16;j++)s+=`<span class="u" style="outline:1px dashed var(--line);outline-offset:-1px"></span>`;return `<div>${s}</div><div class="glabel">rows = positions 0…11 · dashed = beyond L_max</div></div><p class="cap">Illustrative values. One trained row per position; nothing exists past the last row.</p>`},
+ sinus:()=>{let s=`<div class="mgrid" style="grid-template-columns:repeat(16,9px)" role="img" aria-label="Sinusoidal encoding heatmap">`;const d=32;for(let p=0;p<24;p++)for(let i=0;i<16;i++){const v=Math.sin(p/Math.pow(10000,(2*i)/d));s+=`<span style="background:${v>=0?mix("var(--heat)",v*85):mix("var(--warm)",-v*85)}"></span>`}return `<div>${s}</div><div class="glabel">rows = positions 0…23 · cols = sine dims, fast → slow</div></div><p class="cap">Left columns flip every token; right columns barely change across the whole range.</p>`},
+ rope:()=>ropeSVG(),
+ flash:()=>flashSVG(),
+ relbias:()=>{const k=4;let g=`<div><div class="mgrid" style="grid-template-columns:repeat(16,9px)" role="img" aria-label="Clipped relative distance buckets">`;for(let i=0;i<16;i++)for(let j=0;j<16;j++){if(j>i){g+=`<span class="u"></span>`;continue}const d=Math.min(i-j,k);g+=`<span style="background:${mix("var(--t-pos)",90-d*18)}"></span>`}return g+`</div><div class="glabel">shade = learned vector for distance 0…4 (clipped)</div></div><p class="cap">Every diagonal shares one learned vector. Beyond distance 4 all tokens look equally far away.</p>`},
+ schedule:()=>`<div class="sched" id="sched" style="display:grid;gap:10px;width:100%"><div class="wctl"><span>one attention layer every</span><span class="seg" id="sched-seg" role="group" aria-label="Attention layer frequency"></span><span>layers</span></div><div id="sched-strip" style="display:flex;flex-wrap:wrap;gap:3px"></div><div id="sched-out" style="font-family:var(--mono);font-size:12.5px"></div></div><p class="cap">24 layers shown. Blue = attention (keeps a KV cache), green = fixed-state layer. Cache is relative to a model where all 24 layers are attention.</p>`,
+ drope:()=>`<div class="svgbox"><svg viewBox="0 0 360 96" width="360" role="img" aria-label="DroPE two phases"><rect x="4" y="30" width="250" height="30" rx="4" fill="var(--t-pos)" opacity=".85"/><text x="12" y="50" font-size="12" fill="var(--surface)">pretrain with RoPE (100%)</text><rect x="258" y="30" width="22" height="30" rx="4" fill="var(--t-len)"/><text x="286" y="42" font-size="11" fill="var(--muted)">drop RoPE,</text><text x="286" y="56" font-size="11" fill="var(--muted)">recalibrate</text><text x="250" y="80" font-size="11" fill="var(--muted)">0.5–20%</text><text x="4" y="20" font-size="11" fill="var(--muted)">training budget →</text></svg></div><p class="cap">Schematic, not to exact scale: RoPE speeds up pretraining, then is removed.</p>`,
+ "heads-mqa":()=>headsSVG("mqa"),
+ "heads-gqa":()=>headsSVG("gqa"),
+ kvcalc:()=>headsSVG("mla")+kvCalcHTML(),
+ "freq-pi":()=>freqHTML("pi",["rope","pi"]),
+ "freq-ntk":()=>freqHTML("ntk",["rope","pi","ntk"]),
+ "freq-yarn":()=>freqHTML("yarn",["rope","pi","ntk","yarn"]),
+ "memdemo-linear":()=>memHTML("linear"),
+ "memdemo-delta":()=>memHTML("delta"),
+ "memdemo-gated":()=>memHTML("gated")
+};
+
+/* heads diagram */
+function headsSVG(kind){
+  const H=8,W=340,qy=18,ky=92;let s=`<div class="svgbox"><svg viewBox="0 0 ${W} 130" width="${W}" role="img" aria-label="${kind.toUpperCase()} head layout">`;
+  const qx=i=>20+i*40;
+  s+=`<text x="4" y="12" font-size="10" fill="var(--muted)">query heads</text>`;
+  for(let i=0;i<H;i++)s+=`<rect x="${qx(i)}" y="${qy}" width="24" height="18" rx="3" fill="var(--t-core)" opacity=".8"/>`;
+  let kvs=[];
+  if(kind==="mqa")kvs=[{x:W/2-12,c:[0,1,2,3,4,5,6,7]}];
+  if(kind==="gqa")kvs=[{x:qx(1.5),c:[0,1,2,3]},{x:qx(5.5),c:[4,5,6,7]}];
+  if(kind==="mla"){
+    for(let i=0;i<H;i++){s+=`<line x1="${qx(i)+12}" y1="${qy+18}" x2="${qx(i)+12}" y2="${ky-18}" stroke="var(--line)" stroke-width="1.2"/><rect x="${qx(i)}" y="${ky-20}" width="24" height="14" rx="3" fill="none" stroke="var(--t-kv)" stroke-dasharray="3 2"/><line x1="${qx(i)+12}" y1="${ky-6}" x2="${W/2}" y2="${ky+14}" stroke="var(--t-kv)" stroke-width="1" opacity=".6"/>`}
+    s+=`<rect x="${W/2-60}" y="${ky+14}" width="120" height="18" rx="3" fill="var(--t-kv)"/><text x="${W/2}" y="${ky+27}" font-size="10" text-anchor="middle" fill="var(--surface)">latent c (cached)</text>`;
+    s+=`<text x="4" y="${ky-24}" font-size="10" fill="var(--muted)">per-head K,V: rebuilt, not cached</text></svg></div><p class="cap">MLA caches one small latent per token; per-head keys and values are up-projections of it (dashed).</p>`;return s;
+  }
+  kvs.forEach(k=>{k.c.forEach(i=>s+=`<line x1="${qx(i)+12}" y1="${qy+18}" x2="${k.x+12}" y2="${ky}" stroke="var(--line)" stroke-width="1.2"/>`);s+=`<rect x="${k.x}" y="${ky}" width="24" height="18" rx="3" fill="var(--t-kv)"/>`});
+  s+=`<text x="4" y="${ky+34}" font-size="10" fill="var(--muted)">cached K/V heads: ${kvs.length} of 8 (MHA would cache 8)</text></svg></div>`;
+  return s+`<p class="cap">${kind==="mqa"?"All 8 query heads read the same K and V.":"Groups of 4 query heads share one K/V head (G = 2)."}</p>`;
+}
+
+/* KV calculator */
+function kvCalcHTML(){return `<div class="calc" id="kvcalc"><div class="ins">
+<label for="kv-L">layers<input id="kv-L" type="number" min="1" value="48"></label>
+<label for="kv-H">query heads<input id="kv-H" type="number" min="1" value="32"></label>
+<label for="kv-d">head dim<input id="kv-d" type="number" min="1" value="128"></label>
+<label for="kv-G">KV heads (GQA)<input id="kv-G" type="number" min="1" value="8"></label>
+<label for="kv-n">context tokens<input id="kv-n" type="number" min="1" value="32768"></label>
+<label for="kv-u">active users<input id="kv-u" type="number" min="1" value="1"></label>
+<label for="kv-b">precision<select id="kv-b"><option value="2">bf16 / fp16</option><option value="1">fp8</option></select></label>
+</div><div class="bars" id="kv-bars"></div><p class="cap">Cache = 2 (K and V) × layers × KV heads × head dim × tokens × active users × bytes. Every active conversation keeps its own cache; weights are shared, history is not. The MLA row always uses DeepSeek-V2's 512 latent + 64 rotary dims per token per layer, whatever head count you enter, so it is not the same model compressed. Defaults: 48 layers, 8 KV heads, head dim 128, bf16, 32K tokens, which gives 6.44 GB per user for GQA. Raw K/V only; weights, activations and allocator headroom are extra.</p></div>`}
+function kvCalcInit(){
+  const el=$("#kvcalc");if(!el)return;
+  const upd=()=>{const g=id=>Math.max(1,+$("#"+id).value||1);const L=g("kv-L"),H=g("kv-H"),d=g("kv-d"),G=Math.min(g("kv-G"),H),n=g("kv-n"),u=g("kv-u"),b=+$("#kv-b").value;
+    const rows=[["MHA",2*L*H*d*n*u*b],["GQA",2*L*G*d*n*u*b],["MQA",2*L*1*d*n*u*b],["MLA",L*(512+64)*n*u*b]];
+    const mx=Math.max(...rows.map(r=>r[1]));
+    $("#kv-bars").innerHTML=rows.map(([k,v])=>`<div class="bar"><span>${k}</span><span class="t"><i style="width:${Math.max(.5,v/mx*100)}%"></i></span><span class="v">${fmtB(v)}</span></div>`).join("")};
+  el.querySelectorAll("input,select").forEach(x=>x.addEventListener("input",upd));upd();
+}
+function fmtB(v){const u=["B","kB","MB","GB","TB"];let i=0;while(v>=1000&&i<u.length-1){v/=1000;i++}return (v>=100?v.toFixed(0):v.toFixed(2))+" "+u[i]}
+
+/* RoPE svg */
+function ropeSVG(){
+  const W=320,Hh=150;let s=`<div class="svgbox"><svg viewBox="0 0 ${W} ${Hh}" width="${W}" role="img" aria-label="RoPE rotates query and key pairs by position">`;
+  const draw=(cx,cy,ang1,ang2,lab)=>{s+=`<circle cx="${cx}" cy="${cy}" r="46" fill="none" stroke="var(--line)"/>`;
+    const p=(a,col,t)=>{const x=cx+42*Math.cos(-a),y=cy+42*Math.sin(-a);s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="2.2"/><circle cx="${x}" cy="${y}" r="3" fill="${col}"/><text x="${x+(Math.cos(-a)>0?5:-14)}" y="${y+(Math.sin(-a)>0?12:-4)}" font-size="10" fill="${col}">${t}</text>`};
+    p(ang1,"var(--t-core)","q");p(ang2,"var(--t-pos)","k");
+    s+=`<text x="${cx}" y="${cy+64}" font-size="10" text-anchor="middle" fill="var(--muted)">${lab}</text>`};
+  const th=0.35;
+  draw(80,66,0.3+5*th,0.9+3*th,"q at 5, k at 3");
+  draw(240,66,0.3+12*th,0.9+10*th,"q at 12, k at 10");
+  s+=`</svg></div><p class="cap">Both pairs are 2 positions apart, so the angle between q and k is the same, and so is their dot product. Absolute position cancels.</p>`;return s;
+}
+function flashSVG(){
+  let s=`<div class="svgbox"><svg viewBox="0 0 320 140" width="320" role="img" aria-label="FlashAttention tiling"><text x="4" y="12" font-size="10" fill="var(--muted)">score matrix, processed tile by tile</text>`;
+  for(let i=0;i<4;i++)for(let j=0;j<=i;j++){const done=(i<2)||(i===2&&j<1);s+=`<rect x="${10+j*28}" y="${22+i*28}" width="26" height="26" rx="2" fill="${done?"var(--t-sys)":(i===2&&j===1?"var(--heat)":"var(--soft)")}" opacity="${done?.35:1}"/>`}
+  s+=`<rect x="170" y="30" width="130" height="36" rx="4" fill="none" stroke="var(--heat)"/><text x="235" y="52" font-size="10" text-anchor="middle" fill="var(--ink)">SRAM: one tile</text><rect x="170" y="80" width="130" height="36" rx="4" fill="none" stroke="var(--line)"/><text x="235" y="96" font-size="10" text-anchor="middle" fill="var(--muted)">HBM: Q, K, V, O only</text><text x="235" y="109" font-size="10" text-anchor="middle" fill="var(--muted)">never the n×n matrix</text></svg></div><p class="cap">Only the current tile (blue) lives in fast memory. Running max and sum make the softmax exact.</p>`;return s;
+}
+
+/* frequency chart for RoPE extension */
+const FQ={L:4096,d:128,b:10000};
+function lam(method,i,s){const {L,d,b}=FQ;const th=Math.pow(b,-2*i/d);let t=th;
+  if(method==="pi")t=th/s;
+  if(method==="ntk"){const b2=b*Math.pow(s,d/(d-2));t=Math.pow(b2,-2*i/d)}
+  if(method==="yarn"){const l=2*Math.PI/th;const r=L/l;const g=Math.min(1,Math.max(0,(r-1)/(32-1)));t=(1-g)*th/s+g*th}
+  return 2*Math.PI/t}
+const MCOL={rope:"var(--muted)",pi:"var(--t-sparse)",ntk:"var(--t-kv)",yarn:"var(--t-len)"};
+const MNAME={rope:"original RoPE",pi:"PI",ntk:"NTK-aware",yarn:"YaRN"};
+function freqSVG(methods,s){
+  const W=420,H=230,ml=44,mr=10,mt=12,mb=34,iw=W-ml-mr,ih=H-mt-mb;
+  const ymin=0,ymax=7;const x=i=>ml+i/63*iw;const y=v=>mt+ih-(Math.log10(v)-ymin)/(ymax-ymin)*ih;
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="RoPE wavelength per dimension under different extension methods">`;
+  for(let e=0;e<=ymax;e++){g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(10**e)}" y2="${y(10**e)}" stroke="var(--line)" stroke-width=".6"/><text x="${ml-6}" y="${y(10**e)+3}" font-size="9" text-anchor="end" fill="var(--muted)">1e${e}</text>`}
+  [0,16,32,48,63].forEach(i=>g+=`<text x="${x(i)}" y="${H-mb+14}" font-size="9" text-anchor="middle" fill="var(--muted)">${i}</text>`);
+  g+=`<text x="${ml+iw/2}" y="${H-4}" font-size="9" text-anchor="middle" fill="var(--muted)">dimension pair i (fast → slow)</text>`;
+  g+=`<text x="10" y="${mt+ih/2}" font-size="9" fill="var(--muted)" transform="rotate(-90 10 ${mt+ih/2})" text-anchor="middle">wavelength (tokens)</text>`;
+  const hl=(v,lab,dash)=>{g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink)" stroke-width=".8" stroke-dasharray="${dash}"/><text x="${ml+4}" y="${y(v)-4}" font-size="9" fill="var(--ink)">${lab}</text>`};
+  hl(FQ.L,"trained context 4K","4 3");hl(FQ.L*s,"target "+(FQ.L*s/1024)+"K","1 3");
+  methods.forEach(m=>{let p="";for(let i=0;i<64;i++){p+=(i?"L":"M")+x(i).toFixed(1)+","+y(lam(m,i,s)).toFixed(1)}g+=`<path d="${p}" fill="none" stroke="${MCOL[m]}" stroke-width="${m==="rope"?1.4:2}" ${m==="rope"?'stroke-dasharray="3 2"':""}/>`});
+  return g+"</svg>";
+}
+function freqHTML(key,methods){
+  return `<div class="viz-freq" data-key="${key}" data-methods="${methods.join(",")}" style="display:grid;gap:8px;width:100%"><div class="wctl"><label for="fs-${key}">scale s = <b id="fsv-${key}">8</b>×</label><input id="fs-${key}" type="range" min="1" max="5" step="1" value="3"></div><div class="svgbox" id="fsvg-${key}"></div><div class="legend">${methods.map(m=>`<span><i style="background:${MCOL[m]}"></i>${MNAME[m]}</span>`).join("")}</div><p class="cap">head dim 128, base 10,000, trained at 4K. A curve above the trained-context line means that dimension never completed a turn in training. ${key==="yarn"?"YaRN leaves the fast dimensions untouched and interpolates only the slow ones.":key==="ntk"?"NTK moves the slow end most and leaves the fast end almost where it was.":"PI shifts every dimension up by the same factor, including the fast ones."}</p></div>`;
+}
+function freqInit(){document.querySelectorAll(".viz-freq").forEach(el=>{const k=el.dataset.key,m=el.dataset.methods.split(",");const r=$("#fs-"+k);const upd=()=>{const s=2**(+r.value);$("#fsv-"+k).textContent=s;$("#fsvg-"+k).innerHTML=freqSVG(m,s)};r.addEventListener("input",upd);upd()})}
+
+/* associative memory demo */
+function memHTML(kind){
+  const sw=kind==="gated";
+  return `<div class="mem" data-kind="${kind}" id="mem-${kind}">
+  <div style="font-family:var(--sans);font-size:13px;color:var(--muted)">${sw?`Old topic writes <b style="color:var(--ink)">A→(1,0,0)</b> and <b style="color:var(--ink)">B→(0,1,0)</b>. Then the topic switches and <b style="color:var(--ink)">C→(0,0,1)</b> is written. Keys are orthogonal unit vectors.`:`Writes in order: <b style="color:var(--ink)">A→(1,0,0)</b>, <b style="color:var(--ink)">B→(0,1,0)</b>, then update <b style="color:var(--ink)">A→(0,0,1)</b>. Keys A and B are orthogonal unit vectors.`}</div>
+  ${sw?`<div class="wctl"><label for="alpha-${kind}">decay α at the topic switch = <b id="av-${kind}">0.20</b></label><input id="alpha-${kind}" type="range" min="0" max="1" step="0.05" value="0.2"></div>`:""}
+  <div class="row" style="color:var(--muted)"><span></span>${sw?"<span>read C (want 0,0,1)</span><span>read A (stale; want ≈ 0)</span>":"<span>read A (want 0,0,1)</span><span>read B (want 0,1,0)</span>"}</div>
+  <div id="memrows-${kind}"></div></div><p class="cap">${kind==="linear"?"Additive writes: reading A returns old + new.":kind==="delta"?"The delta rule subtracts what was stored before writing.":"The gate lets the model drop an old topic in one step. Additive and delta memories still return A's stale value. The cost: a low α also fades anything from the old topic you still needed."}</p>`;
+}
+function memRun(rule,alpha,scenario){
+  let S=[[0,0,0],[0,0,0],[0,0,0]];const e=i=>[0,1,2].map(j=>j===i?1:0);
+  const mv=(M,k)=>M.map(r=>r.reduce((a,x,j)=>a+x*k[j],0));
+  const writes=scenario==="switch"?[[e(0),[1,0,0],1],[e(1),[0,1,0],1],[e(2),[0,0,1],alpha]]:[[e(0),[1,0,0],1],[e(1),[0,1,0],1],[e(0),[0,0,1],1]];
+  writes.forEach(([k,v,al])=>{
+    if(rule==="linear"){S=S.map((r,i)=>r.map((x,j)=>x+v[i]*k[j]))}
+    else{const a=rule==="gated"?al:1;const vh=mv(S,k);S=S.map((r,i)=>r.map((x,j)=>a*x+(v[i]-a*vh[i])*k[j]))}
+  });
+  return scenario==="switch"?[mv(S,e(2)),mv(S,e(0))]:[mv(S,e(0)),mv(S,e(1))];
+}
+function vecHTML(v){return `<span class="vec">${v.map(x=>`<i class="${x<0?"neg":""}" style="height:${Math.max(1,Math.abs(x)*30)}px"></i>`).join("")}<small>(${v.map(x=>x.toFixed(2).replace(/\.00$/,"")).join(", ")})</small></span>`}
+function memInit(){document.querySelectorAll(".mem").forEach(el=>{const kind=el.dataset.kind;const rules=kind==="linear"?["linear"]:kind==="delta"?["linear","delta"]:["linear","delta","gated"];
+  const upd=()=>{const a=kind==="gated"?+$("#alpha-"+kind).value:1;if(kind==="gated")$("#av-"+kind).textContent=a.toFixed(2);
+    $("#memrows-"+kind).innerHTML=rules.map(r=>{const [ra,rb]=memRun(r,a,kind==="gated"?"switch":"update");return `<div class="row"><span>${r==="linear"?"additive":r==="delta"?"delta rule":"gated delta"}</span>${vecHTML(ra)}${vecHTML(rb)}</div>`}).join("")};
+  const s=$("#alpha-"+kind);if(s)s.addEventListener("input",upd);upd()})}
+
+/* ---------- timeline render ---------- */
+function renderTimeline(){
+  const tl=$("#tl");let h="",yr=null;const cards=E.filter(e=>e.id);
+  const byId={};cards.forEach(c=>byId[c.id]=c);
+  E.forEach(e=>{
+    const d=fmtDate(e.date);
+    if(d.year!==yr){yr=d.year;h+=`<div class="year" aria-hidden="true"><h3>${yr}</h3><hr></div>`}
+    if(e.type==="shift"){h+=`<div class="shift"><span class="k">Priority shift</span><p>${e.text}</p></div>`;return}
+    const T=THREADS[e.thread];
+    const idx=cards.indexOf(e);const nx=cards[idx+1];
+    h+=`<article class="entry" id="${e.id}" data-thread="${e.thread}" style="--c:${T.c}">
+      <div class="rail"><b>${d.day}</b>${d.year}</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="tags"><span class="tag">${T.name}</span>${e.bill?`<span class="tag bill">Pays down: ${e.bill}</span>`:""}${e.added?'<span class="tag added">added</span>':""}${e.prologue?'<span class="tag prologue">prologue</span>':""}</div>
+          <h3>${e.title}</h3>
+          <p class="src">Source: <a href="${e.src.url}" target="_blank" rel="noopener">${e.src.label}</a></p>
+        </div>
+        <div class="story">
+          <div><h4>What existed</h4><p>${e.existed}</p></div>
+          <div><h4>The problem people hit</h4><p>${e.problem}</p></div>
+        </div>
+        <div class="mech">
+          <div class="txt"><h4 style="margin:0;font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">The mechanism</h4><p>${e.mech}</p><div class="eq">${e.eq}</div></div>
+          <div class="viz">${(VIZ[e.viz]||VIZ.none)()}</div>
+        </div>
+        <div class="trade">
+          <div class="buys"><h4>What it buys</h4><ul>${e.buys.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+          <div class="costs"><h4>What it gives up</h4><ul>${e.costs.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+          <div class="when"><h4>When you'd choose it</h4><p>${e.when}</p></div>
+        </div>
+        ${e.fit?`<div class="fit"><div><b>2K chatbot</b>${e.fit[0]}</div><div><b>1M-token agent</b>${e.fit[1]}</div></div>`:""}
+        ${e.next?`<p class="next"><b>Left for the next paper:</b> ${e.next}${e.ans?` <span class="resp">Picked up by <a href="#${e.ans}">${byId[e.ans].title}</a> (${byId[e.ans].date.slice(0,4)})</span>`:""}</p>`:""}
+        ${e.note?`<p class="note"><b>Note on the date or inclusion.</b> ${e.note}</p>`:""}
+      </div>
+    </article>`;
+  });
+  tl.innerHTML=h;
+}
+
+/* ---------- swimlane ---------- */
+const LAB={hybrid:"um",flash:"dm","gated-attn":"um",relpos:"um",bahdanau:"um",sdpa:"um","learned-pos":"ue",sinusoidal:"ds",rope:"um",alibi:"dm",pi:"ue",ntk:"de",yarn:"us",sinks:"ds","sparse-transformer":"ue",topk:"dm",sliding:"us",nsa:"de",dsa:"um",csa:"ds",drope:"um"};
+function renderLanes(){
+  const lanes=["core","pos","kv","len","sparse","rec","sys"];const W=1000,top=26,lh=38,left=150,right=20;
+  const H=top+lanes.length*lh+10;const svg=$("#lanes");svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const t0=2014.4,t1=2026.8;const X=t=>left+(t-t0)/(t1-t0)*(W-left-right);
+  const dec=iso=>{const [y,m,d]=iso.split("-").map(Number);return y+(m-1)/12+(d-1)/365};
+  let g="";
+  for(let y=2015;y<=2026;y++){g+=`<line x1="${X(y)}" x2="${X(y)}" y1="${top-6}" y2="${H-6}" stroke="var(--line)" stroke-width=".7"/><text x="${X(y)}" y="${top-12}" font-size="11" text-anchor="middle" fill="var(--muted)">${y}</text>`}
+  lanes.forEach((k,i)=>{const cy=top+i*lh+lh/2;g+=`<text x="8" y="${cy+4}" font-size="11" fill="${THREADS[k].c}">${THREADS[k].name}</text><line x1="${left}" x2="${W-right}" y1="${cy}" y2="${cy}" stroke="var(--line)" stroke-width=".6" stroke-dasharray="2 3"/>`});
+  const counts={};
+  E.filter(e=>e.id).forEach(e=>{const li=lanes.indexOf(e.thread);const cy=top+li*lh+lh/2;const cx=X(dec(e.date));counts[e.thread]=(counts[e.thread]||0)+1;const L=LAB[e.id]||(counts[e.thread]%2===1?"um":"dm");const up=L[0]==="u";const an={m:"middle",s:"start",e:"end"}[L[1]];const dx=L[1]==="s"?-3:L[1]==="e"?3:0;
+    g+=`<a href="#${e.id}" aria-label="${e.title}, ${e.date}"><circle cx="${cx}" cy="${cy}" r="5.5" fill="${THREADS[e.thread].c}"><title>${e.title} · ${e.date}</title></circle><text x="${cx+dx}" y="${up?cy-9:cy+17}" font-size="10" text-anchor="${an}" fill="var(--ink)">${e.short}</text></a>`});
+  svg.innerHTML=g;
+}
+function renderChips(){
+  const c=$("#chips");let active=null;
+  const all=document.createElement("button");all.className="chip";all.type="button";all.textContent="All threads";all.setAttribute("aria-pressed","true");all.style.setProperty("--c","var(--ink)");c.appendChild(all);
+  const btns=[all];
+  Object.entries(THREADS).forEach(([k,t])=>{const b=document.createElement("button");b.className="chip";b.type="button";b.style.setProperty("--c",t.c);b.innerHTML=`<i></i>${t.name}`;b.setAttribute("aria-pressed","false");b.dataset.k=k;c.appendChild(b);btns.push(b)});
+  const apply=k=>{active=k;btns.forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.k||null)===k)));document.querySelectorAll(".entry").forEach(e=>e.querySelector(".card").classList.toggle("dim",!!k&&e.dataset.thread!==k))};
+  btns.forEach(b=>b.addEventListener("click",()=>apply(b.dataset.k&&active!==b.dataset.k?b.dataset.k:null)));
+}
+function renderSources(){
+  const extra=[
+    {d:"2024-06-10",t:"Yang et al., Parallelizing Linear Transformers with the Delta Rule over Sequence Length, arXiv 2406.06484",u:"https://arxiv.org/abs/2406.06484"},
+    {d:"2026-04-24",t:"DeepSeek API news: DeepSeek-V4 Preview release",u:"https://api-docs.deepseek.com/news/news260424/"},
+    {d:"2025-09-29",t:"Hugging Face: deepseek-ai/DeepSeek-V3.2-Exp (model card and DSA report)",u:"https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Exp"},
+    {d:"2019-10",t:"Raffel et al., T5, arXiv 1910.10683 (relative position buckets)",u:"https://arxiv.org/abs/1910.10683"},
+    {d:"2018-12",t:"Shen et al., Efficient Attention: Attention with Linear Complexities, arXiv 1812.01243",u:"https://arxiv.org/abs/1812.01243"},
+    {d:"2018-05",t:"Milakov & Gimelshein, Online normalizer calculation for softmax, arXiv 1805.02867",u:"https://arxiv.org/abs/1805.02867"},
+    {d:"2021-12",t:"Rabe & Staats, Self-attention Does Not Need O(n²) Memory, arXiv 2112.05682",u:"https://arxiv.org/abs/2112.05682"},
+    {d:"2018-02",t:"Parmar et al., Image Transformer, arXiv 1802.05751 (local attention)",u:"https://arxiv.org/abs/1802.05751"},
+    {d:"2022-06",t:"Mehta et al., Gated State Spaces, arXiv 2206.13947",u:"https://arxiv.org/abs/2206.13947"},
+    {d:"2022-12-28",t:"Dao, Fu et al., Hungry Hungry Hippos (H3), arXiv 2212.14052",u:"https://arxiv.org/abs/2212.14052"},
+    {d:"2023-07",t:"Evan Miller, Attention Is Off By One (blog)",u:"https://www.evanmiller.org/attention-is-off-by-one.html"},
+    {d:"2024-03-28",t:"Lieber et al., Jamba: A Hybrid Transformer-Mamba Language Model, arXiv 2403.19887",u:"https://arxiv.org/abs/2403.19887"},
+    {d:"2026-04-24",t:"Hugging Face: deepseek-ai/DeepSeek-V4-Flash config.json (partial RoPE, compression ratios, window, top-k)",u:"https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/blob/main/config.json"},
+    {d:"2023-06-27",t:"kaiokendev, Extending context to 8K (SuperHOT), concurrent with PI",u:"https://kaiokendev.github.io/til#extending-context-to-8k"}
+  ];
+  const items=E.filter(e=>e.id).map(e=>({d:e.date,t:e.src.label,u:e.src.url,n:e.title})).concat(extra).sort((a,b)=>a.d.localeCompare(b.d));
+  $("#srclist").innerHTML=items.map(s=>`<li><span class="d">${s.d}</span> · ${s.n?`<b style="font-weight:500">${s.n}</b> — `:""}<a href="${s.u}" target="_blank" rel="noopener">${s.t}</a></li>`).join("");
+}
+
+function schedInit(){const seg=$("#sched-seg");if(!seg)return;const opts=[[1,"1"],[2,"2"],[4,"4"],[8,"8"],[0,"never"]];
+  const upd=k=>{seg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.k===k)));let h="",a=0;for(let i=0;i<24;i++){const att=k>0&&(i+1)%k===0;if(att)a++;h+=`<span title="layer ${i+1}" style="width:18px;height:26px;border-radius:3px;background:${att?"var(--t-core)":"var(--t-rec)"};opacity:${att?1:.55}"></span>`}
+    $("#sched-strip").innerHTML=h;$("#sched-out").innerHTML=`${a} of 24 layers keep a KV cache → cache ≈ <b>${(a/24*100).toFixed(1)}%</b> of all-attention${a===0?" · no layer can look up an exact past token":""}`};
+  opts.forEach(([k,l])=>{const b=document.createElement("button");b.type="button";b.dataset.k=k;b.textContent=l;b.addEventListener("click",()=>upd(k));seg.appendChild(b)});upd(4)}
+function compactInit(){const b=$("#t-compact");b.addEventListener("click",()=>{const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",String(on));$("#tl").classList.toggle("compact",on);try{localStorage.setItem("aio-compact",on?"1":"0")}catch(e){}});let v=null;try{v=localStorage.getItem("aio-compact")}catch(e){}if(v==="1")b.click()}
+initPipe();renderLanes();renderTimeline();renderChips();renderSources();kvCalcInit();freqInit();memInit();schedInit();compactInit();
+})();
+</script>
+</body></html>
